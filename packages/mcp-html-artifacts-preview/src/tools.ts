@@ -48,6 +48,12 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
       },
     },
     ({ id, title, html }) => {
+      if (title === undefined && html === undefined) {
+        return {
+          content: [{ type: 'text' as const, text: 'At least one of title or html must be provided' }],
+          isError: true,
+        };
+      }
       const page = pageStore.update(id, { title, html });
       if (!page) {
         return {
