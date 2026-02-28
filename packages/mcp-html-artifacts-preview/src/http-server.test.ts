@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { buildHtml } from './http-server.js';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { buildHtml, startHttpServer } from './http-server.js';
+import { PageStore } from './page-store.js';
+import type { HttpServer } from './http-server.js';
 import type { Page } from './page-store.js';
 
 function makePage(overrides: Partial<Page> = {}): Page {
@@ -101,5 +103,143 @@ describe('buildHtml', () => {
     expect(result).toContain('new EventSource(location.pathname+"/events")');
     expect(result).toContain('addEventListener("update"');
     expect(result).toContain('addEventListener("delete"');
+  });
+});
+
+describe('HTTP server integration', () => {
+  let httpServer: HttpServer;
+  let pageStore: PageStore;
+
+  beforeAll(async () => {
+    pageStore = new PageStore();
+    httpServer = await startHttpServer({ pageStore });
+  });
+
+  afterAll(async () => {
+    await httpServer.close();
+  });
+
+  it('should serve a created page', async () => {
+    const page = pageStore.create({ title: 'HTTP Test', html: '<html><head><title>HTTP Test</title></head><body><p>Hello</p></body></html>' });
+
+    const res = await fetch(`${httpServer.url}/pages/${page.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    const body = await res.text();
+    expect(body).toContain('<p>Hello</p>');
+    expect(body).toContain('EventSource');
+  });
+
+  it('should return 404 for non-existent page', async () => {
+    const res = await fetch(`${httpServer.url}/pages/non-existent`);
+
+    expect(res.status).toBe(404);
+    const body = await res.text();
+    expect(body).toBe('Page Not Found');
+  });
+
+  it('should return 404 for unknown routes', async () => {
+    const res = await fetch(`${httpServer.url}/unknown`);
+
+    expect(res.status).toBe(404);
+    const body = await res.text();
+    expect(body).toBe('Not Found');
+  });
+
+  it('should return 405 for non-GET methods', async () => {
+    const page = pageStore.create({ title: 'Method Test', html: '<p>test</p>' });
+
+    const res = await fetch(`${httpServer.url}/pages/${page.id}`, { method: 'POST' });
+
+    expect(res.status).toBe(405);
+    const body = await res.text();
+    expect(body).toBe('Method Not Allowed');
+  });
+
+  it('should inject scripts and stylesheets into served HTML', async () => {
+    const page = pageStore.create({ title: 'Inject Test', html: '<html><head><title>Inject</title></head><body><p>test</p></body></html>' });
+    pageStore.addScripts(page.id, ['https://cdn.example.com/lib.js']);
+    pageStore.addStylesheets(page.id, ['https://cdn.example.com/style.css']);
+
+    const res = await fetch(`${httpServer.url}/pages/${page.id}`);
+    const body = await res.text();
+
+    expect(body).toContain('<script src="https://cdn.example.com/lib.js"></script>');
+    expect(body).toContain('<link rel="stylesheet" href="https://cdn.example.com/style.css">');
+  });
+
+  it('should return SSE stream for events endpoint', async () => {
+    const page = pageStore.create({ title: 'SSE Test', html: '<p>sse</p>' });
+
+    const controller = new AbortController();
+    const res = await fetch(`${httpServer.url}/pages/${page.id}/events`, {
+      signal: controller.signal,
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('text/event-stream');
+
+    controller.abort();
+  });
+
+  it('should return 404 for SSE endpoint of non-existent page', async () => {
+    const res = await fetch(`${httpServer.url}/pages/non-existent/events`);
+
+    expect(res.status).toBe(404);
+  });
+
+  it('should send SSE update event when page is updated', async () => {
+    const page = pageStore.create({ title: 'SSE Update', html: '<p>original</p>' });
+
+    const controller = new AbortController();
+    const res = await fetch(`${httpServer.url}/pages/${page.id}/events`, {
+      signal: controller.signal,
+    });
+
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+
+    // Read initial newline
+    await reader.read();
+
+    // Trigger an update
+    pageStore.update(page.id, { html: '<p>updated</p>' });
+
+    // Read the SSE event
+    const { value } = await reader.read();
+    const text = decoder.decode(value);
+    expect(text).toContain('event: update');
+
+    controller.abort();
+  });
+
+  it('should send SSE delete event when page is deleted', async () => {
+    const page = pageStore.create({ title: 'SSE Delete', html: '<p>to delete</p>' });
+
+    const controller = new AbortController();
+    const res = await fetch(`${httpServer.url}/pages/${page.id}/events`, {
+      signal: controller.signal,
+    });
+
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+
+    // Read initial newline
+    await reader.read();
+
+    // Trigger a delete
+    pageStore.delete(page.id);
+
+    // Read the SSE event
+    const { value } = await reader.read();
+    const text = decoder.decode(value);
+    expect(text).toContain('event: delete');
+
+    controller.abort();
+  });
+
+  it('should assign a dynamic port', () => {
+    expect(httpServer.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
   });
 });
