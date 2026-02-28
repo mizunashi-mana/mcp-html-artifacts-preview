@@ -1,5 +1,9 @@
 # mcp-html-artifacts-preview
 
+[![CI Lint](https://github.com/mizunashi-mana/mcp-html-artifacts-preview/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/mizunashi-mana/mcp-html-artifacts-preview/actions/workflows/ci-lint.yml)
+[![CI Test](https://github.com/mizunashi-mana/mcp-html-artifacts-preview/actions/workflows/ci-test.yml/badge.svg)](https://github.com/mizunashi-mana/mcp-html-artifacts-preview/actions/workflows/ci-test.yml)
+[![npm version](https://img.shields.io/npm/v/%40mizunashi_mana%2Fmcp-html-artifacts-preview)](https://www.npmjs.com/package/@mizunashi_mana/mcp-html-artifacts-preview)
+
 An MCP server that lets AI assistants instantly preview generated HTML in your browser.
 
 ## What is this?
@@ -52,4 +56,7 @@ Add to your MCP client configuration:
 
 ## License
 
-Licensed under Apache-2.0 OR MPL-2.0.
+This project is dual-licensed — you can choose either of the following:
+
+- [Apache License 2.0](LICENSE-APACHE)
+- [Mozilla Public License 2.0](LICENSE-MPL)
