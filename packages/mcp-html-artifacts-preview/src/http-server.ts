@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import type { PageStore } from './page-store.js';
+import type { Page, PageStore } from './page-store.js';
 import type { Server, IncomingMessage, ServerResponse } from 'node:http';
 
 export interface HttpServerOptions {
@@ -47,7 +47,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
     }
 
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(page.html);
+    res.end(buildHtml(page));
   });
 
   await new Promise<void>((resolve, reject) => {
@@ -81,4 +81,30 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
       });
     },
   };
+}
+
+function escapeHtmlAttr(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+export function buildHtml(page: Page): string {
+  if (page.scripts.length === 0 && page.stylesheets.length === 0) {
+    return page.html;
+  }
+
+  const tags: string[] = [];
+  for (const url of page.stylesheets) {
+    tags.push(`<link rel="stylesheet" href="${escapeHtmlAttr(url)}">`);
+  }
+  for (const url of page.scripts) {
+    tags.push(`<script src="${escapeHtmlAttr(url)}"></script>`);
+  }
+  const injection = tags.join('\n');
+
+  const headCloseIndex = page.html.indexOf('</head>');
+  if (headCloseIndex !== -1) {
+    return `${page.html.slice(0, headCloseIndex) + injection}\n${page.html.slice(headCloseIndex)}`;
+  }
+
+  return `${injection}\n${page.html}`;
 }

@@ -14,8 +14,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
-    "test": "vitest run --passWithNoTests",
-    "test:update": "vitest run --update --passWithNoTests",
+    "test": "vitest run",
+    "test:update": "vitest run --update",
     "lint:eslint": "eslint --cache --fix src",
     "typecheck": "tsc --noEmit"
   },

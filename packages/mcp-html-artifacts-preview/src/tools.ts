@@ -8,6 +8,8 @@ export interface RegisterToolsOptions {
   getBaseUrl: () => string;
 }
 
+const zUrlString = z.string().refine(s => URL.canParse(s), { message: 'Invalid URL' });
+
 export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOptions): void {
   server.registerTool(
     'create_page',
@@ -124,6 +126,92 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
               html: page.html,
               url: `${getBaseUrl()}/pages/${page.id}`,
               createdAt: page.createdAt.toISOString(),
+              updatedAt: page.updatedAt.toISOString(),
+            }),
+          },
+        ],
+      };
+    },
+  );
+
+  server.registerTool(
+    'destroy_page',
+    {
+      description: 'Delete a page',
+      inputSchema: {
+        id: z.string().describe('Page ID to delete'),
+      },
+    },
+    ({ id }) => {
+      const deleted = pageStore.delete(id);
+      if (!deleted) {
+        return {
+          content: [{ type: 'text' as const, text: `Page not found: ${id}` }],
+          isError: true,
+        };
+      }
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify({ id, deleted: true }) }],
+      };
+    },
+  );
+
+  server.registerTool(
+    'add_scripts',
+    {
+      description: 'Add CDN scripts (e.g. Mermaid.js, Chart.js) to an existing page',
+      inputSchema: {
+        id: z.string().describe('Page ID'),
+        urls: z.array(zUrlString).describe('Script URLs to add'),
+      },
+    },
+    ({ id, urls }) => {
+      const page = pageStore.addScripts(id, urls);
+      if (!page) {
+        return {
+          content: [{ type: 'text' as const, text: `Page not found: ${id}` }],
+          isError: true,
+        };
+      }
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({
+              id: page.id,
+              scripts: page.scripts,
+              updatedAt: page.updatedAt.toISOString(),
+            }),
+          },
+        ],
+      };
+    },
+  );
+
+  server.registerTool(
+    'add_stylesheets',
+    {
+      description: 'Add external stylesheets to an existing page',
+      inputSchema: {
+        id: z.string().describe('Page ID'),
+        urls: z.array(zUrlString).describe('Stylesheet URLs to add'),
+      },
+    },
+    ({ id, urls }) => {
+      const page = pageStore.addStylesheets(id, urls);
+      if (!page) {
+        return {
+          content: [{ type: 'text' as const, text: `Page not found: ${id}` }],
+          isError: true,
+        };
+      }
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify({
+              id: page.id,
+              stylesheets: page.stylesheets,
               updatedAt: page.updatedAt.toISOString(),
             }),
           },
