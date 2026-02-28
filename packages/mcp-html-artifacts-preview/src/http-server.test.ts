@@ -71,4 +71,23 @@ describe('buildHtml', () => {
     const result = buildHtml(page);
     expect(result).toMatch(/^<script.*<\/script>\n<p>Hello<\/p>$/);
   });
+
+  it('should escape special characters in URLs to prevent XSS', () => {
+    const page = makePage({
+      scripts: ['" onload="alert(1)'],
+    });
+
+    const result = buildHtml(page);
+    expect(result).toContain('src="&quot; onload=&quot;alert(1)"');
+    expect(result).not.toContain('onload="alert(1)"');
+  });
+
+  it('should escape ampersands in URLs', () => {
+    const page = makePage({
+      stylesheets: ['https://example.com/style.css?a=1&b=2'],
+    });
+
+    const result = buildHtml(page);
+    expect(result).toContain('href="https://example.com/style.css?a=1&amp;b=2"');
+  });
 });

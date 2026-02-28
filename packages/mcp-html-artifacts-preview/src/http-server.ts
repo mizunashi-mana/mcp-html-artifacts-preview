@@ -83,6 +83,10 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   };
 }
 
+function escapeHtmlAttr(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
 export function buildHtml(page: Page): string {
   if (page.scripts.length === 0 && page.stylesheets.length === 0) {
     return page.html;
@@ -90,10 +94,10 @@ export function buildHtml(page: Page): string {
 
   const tags: string[] = [];
   for (const url of page.stylesheets) {
-    tags.push(`<link rel="stylesheet" href="${url}">`);
+    tags.push(`<link rel="stylesheet" href="${escapeHtmlAttr(url)}">`);
   }
   for (const url of page.scripts) {
-    tags.push(`<script src="${url}"></script>`);
+    tags.push(`<script src="${escapeHtmlAttr(url)}"></script>`);
   }
   const injection = tags.join('\n');
 

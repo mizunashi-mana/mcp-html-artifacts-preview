@@ -8,6 +8,8 @@ export interface RegisterToolsOptions {
   getBaseUrl: () => string;
 }
 
+const zUrlString = z.string().refine(s => URL.canParse(s), { message: 'Invalid URL' });
+
 export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOptions): void {
   server.registerTool(
     'create_page',
@@ -160,7 +162,7 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
       description: 'Add CDN scripts (e.g. Mermaid.js, Chart.js) to an existing page',
       inputSchema: {
         id: z.string().describe('Page ID'),
-        urls: z.array(z.string()).describe('Script URLs to add'),
+        urls: z.array(zUrlString).describe('Script URLs to add'),
       },
     },
     ({ id, urls }) => {
@@ -192,7 +194,7 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
       description: 'Add external stylesheets to an existing page',
       inputSchema: {
         id: z.string().describe('Page ID'),
-        urls: z.array(z.string()).describe('Stylesheet URLs to add'),
+        urls: z.array(zUrlString).describe('Stylesheet URLs to add'),
       },
     },
     ({ id, urls }) => {
