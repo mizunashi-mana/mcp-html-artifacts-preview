@@ -16,9 +16,11 @@ function makePage(overrides: Partial<Page> = {}): Page {
 }
 
 describe('buildHtml', () => {
-  it('should return html as-is when no scripts or stylesheets', () => {
+  it('should always inject hot reload script even with no scripts or stylesheets', () => {
     const page = makePage();
-    expect(buildHtml(page)).toBe(page.html);
+    const result = buildHtml(page);
+    expect(result).toContain('EventSource');
+    expect(result).toContain('</head>');
   });
 
   it('should inject script tags before </head>', () => {
@@ -28,7 +30,7 @@ describe('buildHtml', () => {
 
     const result = buildHtml(page);
     expect(result).toContain('<script src="https://cdn.example.com/lib.js"></script>');
-    expect(result.indexOf('<script')).toBeLessThan(result.indexOf('</head>'));
+    expect(result.indexOf('<script src=')).toBeLessThan(result.indexOf('</head>'));
   });
 
   it('should inject stylesheet tags before </head>', () => {
@@ -52,14 +54,14 @@ describe('buildHtml', () => {
     expect(result).toContain('<link rel="stylesheet" href="https://cdn.example.com/style.css">');
   });
 
-  it('should place stylesheets before scripts', () => {
+  it('should place stylesheets before user scripts', () => {
     const page = makePage({
       scripts: ['https://cdn.example.com/lib.js'],
       stylesheets: ['https://cdn.example.com/style.css'],
     });
 
     const result = buildHtml(page);
-    expect(result.indexOf('<link')).toBeLessThan(result.indexOf('<script'));
+    expect(result.indexOf('<link')).toBeLessThan(result.indexOf('<script src='));
   });
 
   it('should prepend tags when html has no </head>', () => {
@@ -69,7 +71,9 @@ describe('buildHtml', () => {
     });
 
     const result = buildHtml(page);
-    expect(result).toMatch(/^<script.*<\/script>\n<p>Hello<\/p>$/);
+    expect(result).toContain('<script src="https://cdn.example.com/lib.js"></script>');
+    expect(result).toContain('EventSource');
+    expect(result).toMatch(/<p>Hello<\/p>$/);
   });
 
   it('should escape special characters in URLs to prevent XSS', () => {
@@ -89,5 +93,13 @@ describe('buildHtml', () => {
 
     const result = buildHtml(page);
     expect(result).toContain('href="https://example.com/style.css?a=1&amp;b=2"');
+  });
+
+  it('should inject hot reload script that subscribes to SSE events', () => {
+    const page = makePage();
+    const result = buildHtml(page);
+    expect(result).toContain('new EventSource(location.pathname+"/events")');
+    expect(result).toContain('addEventListener("update"');
+    expect(result).toContain('addEventListener("delete"');
   });
 });

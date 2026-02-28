@@ -232,4 +232,76 @@ describe('PageStore', () => {
       expect(page.stylesheets).toEqual([]);
     });
   });
+
+  describe('change events', () => {
+    it('should emit update event on update', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '<p>test</p>' });
+      const events: Array<{ type: string; pageId: string }> = [];
+      store.onChange(e => events.push(e));
+
+      store.update(page.id, { title: 'Updated' });
+
+      expect(events).toEqual([{ type: 'update', pageId: page.id }]);
+    });
+
+    it('should emit delete event on delete', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '<p>test</p>' });
+      const events: Array<{ type: string; pageId: string }> = [];
+      store.onChange(e => events.push(e));
+
+      store.delete(page.id);
+
+      expect(events).toEqual([{ type: 'delete', pageId: page.id }]);
+    });
+
+    it('should not emit delete event for non-existent page', () => {
+      const store = new PageStore();
+      const events: Array<{ type: string; pageId: string }> = [];
+      store.onChange(e => events.push(e));
+
+      store.delete('non-existent');
+
+      expect(events).toEqual([]);
+    });
+
+    it('should emit update event on addScripts', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '' });
+      const events: Array<{ type: string; pageId: string }> = [];
+      store.onChange(e => events.push(e));
+
+      store.addScripts(page.id, ['https://cdn.example.com/lib.js']);
+
+      expect(events).toEqual([{ type: 'update', pageId: page.id }]);
+    });
+
+    it('should emit update event on addStylesheets', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '' });
+      const events: Array<{ type: string; pageId: string }> = [];
+      store.onChange(e => events.push(e));
+
+      store.addStylesheets(page.id, ['https://cdn.example.com/style.css']);
+
+      expect(events).toEqual([{ type: 'update', pageId: page.id }]);
+    });
+
+    it('should stop receiving events after offChange', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '' });
+      const events: Array<{ type: string; pageId: string }> = [];
+      const listener = (e: { type: string; pageId: string }): void => {
+        events.push(e);
+      };
+      store.onChange(listener);
+
+      store.update(page.id, { title: 'Updated' });
+      store.offChange(listener);
+      store.update(page.id, { title: 'Updated Again' });
+
+      expect(events).toHaveLength(1);
+    });
+  });
 });

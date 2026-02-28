@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import type { Page, PageStore } from './page-store.js';
+import type { Page, PageStore, PageChangeEvent } from './page-store.js';
 import type { Server, IncomingMessage, ServerResponse } from 'node:http';
 
 export interface HttpServerOptions {
@@ -13,6 +13,37 @@ export interface HttpServer {
   close: () => Promise<void>;
 }
 
+function handleSseConnection(pageStore: PageStore, pageId: string, req: IncomingMessage, res: ServerResponse): void {
+  if (!pageStore.get(pageId)) {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Page Not Found');
+    return;
+  }
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+  res.write('\n');
+
+  const listener = (event: PageChangeEvent): void => {
+    if (event.pageId !== pageId) {
+      return;
+    }
+    res.write(`event: ${event.type}\ndata: {}\n\n`);
+    if (event.type === 'delete') {
+      res.end();
+    }
+  };
+
+  pageStore.onChange(listener);
+
+  req.on('close', () => {
+    pageStore.offChange(listener);
+  });
+}
+
 export async function startHttpServer(options: HttpServerOptions): Promise<HttpServer> {
   const { pageStore, hostname = '127.0.0.1' } = options;
 
@@ -23,6 +54,18 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
     if (req.method !== 'GET') {
       res.writeHead(405, { 'Content-Type': 'text/plain' });
       res.end('Method Not Allowed');
+      return;
+    }
+
+    const eventsMatch = /^\/pages\/([^/]+)\/events$/.exec(url.pathname);
+    if (eventsMatch) {
+      const pageId = eventsMatch[1];
+      if (pageId === undefined || pageId === '') {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not Found');
+        return;
+      }
+      handleSseConnection(pageStore, pageId, req, res);
       return;
     }
 
@@ -87,11 +130,9 @@ function escapeHtmlAttr(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
-export function buildHtml(page: Page): string {
-  if (page.scripts.length === 0 && page.stylesheets.length === 0) {
-    return page.html;
-  }
+const HOT_RELOAD_SCRIPT = `<script>(function(){var es=new EventSource(location.pathname+"/events");es.addEventListener("update",function(){location.reload()});es.addEventListener("delete",function(){es.close();document.title="[Deleted] "+document.title})})()</script>`;
 
+export function buildHtml(page: Page): string {
   const tags: string[] = [];
   for (const url of page.stylesheets) {
     tags.push(`<link rel="stylesheet" href="${escapeHtmlAttr(url)}">`);
@@ -99,6 +140,7 @@ export function buildHtml(page: Page): string {
   for (const url of page.scripts) {
     tags.push(`<script src="${escapeHtmlAttr(url)}"></script>`);
   }
+  tags.push(HOT_RELOAD_SCRIPT);
   const injection = tags.join('\n');
 
   const headCloseIndex = page.html.indexOf('</head>');
