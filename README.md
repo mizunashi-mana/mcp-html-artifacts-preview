@@ -29,7 +29,7 @@ Add to your MCP client configuration:
   "mcpServers": {
     "html-artifacts-preview": {
       "command": "npx",
-      "args": ["mcp-html-artifacts-preview"]
+      "args": ["-y", "@mizunashi_mana/mcp-html-artifacts-preview"]
     }
   }
 }
