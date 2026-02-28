@@ -20,8 +20,8 @@ steering plan ドキュメントのロードマップを再策定します。完
 
 プロジェクトの実装状態を確認する:
 
-- `cat package.json | jq '.scripts'` でビルド・テストコマンドを確認
-- `ls src/` でソースコードの構成を確認
+- プロジェクトの主要ディレクトリとファイル構成を確認
+- `packages/mcp-html-artifacts-preview/package.json` でバージョン・依存関係を確認
 - `.ai-agent/tasks/` と `.ai-agent/projects/` の状況を確認
 - 最近のコミット履歴を確認
 

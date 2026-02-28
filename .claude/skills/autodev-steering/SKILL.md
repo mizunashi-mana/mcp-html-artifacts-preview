@@ -25,10 +25,10 @@ allowed-tools: Read, Write, Edit, MultiEdit, Bash(mkdir *), Glob, Grep, mcp__git
 
 プロジェクトの実態を確認する:
 
-- `cat package.json | jq '.scripts'` でビルド・テストコマンドを確認
-- `cat package.json | jq '.dependencies, .devDependencies'` で依存パッケージを確認
-- `ls src/` でソースコードの構成を確認
-- `cat tsconfig.json | jq '.'` で TypeScript 設定を確認
+- `packages/` 配下の各パッケージの package.json でバージョン・依存関係を確認
+- `packages/mcp-html-artifacts-preview/src/` でソースコード構成を確認
+- `packages/eslint-config/src/` で ESLint 設定構成を確認
+- `.github/workflows/` で CI/CD 設定を確認
 
 ### 2. GitHub イシュー確認
 

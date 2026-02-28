@@ -61,7 +61,7 @@ allowed-tools: Read, Write, Edit, MultiEdit, Update, WebSearch, WebFetch, ToolSe
 
 #### 視覚的な整理（任意）
 
-html-sync MCP（`create_page` / `update_page` ツール）が利用可能な場合、方針の提示に HTML による可視化を活用する。
+html-artifacts-preview MCP（`create_page` / `update_page` ツール）が利用可能な場合、方針の提示に HTML による可視化を活用する。
 
 - アーキテクチャ図、データフロー図、コンポーネント構成図など
 - Mermaid.js などの CDN ライブラリを `scripts` パラメータで読み込んで活用してもよい
