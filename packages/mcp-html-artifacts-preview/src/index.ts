@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
-/* eslint-disable import-x/order -- builtin import must precede external imports */
 import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-/* eslint-enable import-x/order */
+import { startHttpServer } from './http-server.js';
+import { PageStore } from './page-store.js';
+// eslint-disable-next-line import-x/order -- false positive: no empty line exists between import groups
+import { registerTools } from './tools.js';
 
 const require = createRequire(import.meta.url);
 const pkg: unknown = require('../package.json');
@@ -13,9 +15,20 @@ const version
     ? pkg.version
     : '0.0.0';
 
+const pageStore = new PageStore();
+
+const httpServer = await startHttpServer({ pageStore });
+console.error(`HTTP server listening at ${httpServer.url}`);
+
 const server = new McpServer({
   name: 'mcp-html-artifacts-preview',
   version,
+});
+
+registerTools({
+  server,
+  pageStore,
+  getBaseUrl: () => httpServer.url,
 });
 
 try {
@@ -24,5 +37,6 @@ try {
 }
 catch (error) {
   console.error('Failed to start MCP server:', error);
+  await httpServer.close();
   process.exit(1);
 }
