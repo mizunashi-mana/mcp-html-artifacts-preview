@@ -200,16 +200,18 @@ describe('HTTP server integration', () => {
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
 
-    // Read initial newline
-    await reader.read();
-
     // Trigger an update
     pageStore.update(page.id, { html: '<p>updated</p>' });
 
-    // Read the SSE event
-    const { value } = await reader.read();
-    const text = decoder.decode(value);
-    expect(text).toContain('event: update');
+    // Read chunks until we find the expected event
+    const chunks: string[] = [];
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      chunks.push(decoder.decode(value, { stream: true }));
+      if (chunks.join('').includes('event: update')) break;
+    }
+    expect(chunks.join('')).toContain('event: update');
 
     controller.abort();
   });
@@ -225,16 +227,18 @@ describe('HTTP server integration', () => {
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
 
-    // Read initial newline
-    await reader.read();
-
     // Trigger a delete
     pageStore.delete(page.id);
 
-    // Read the SSE event
-    const { value } = await reader.read();
-    const text = decoder.decode(value);
-    expect(text).toContain('event: delete');
+    // Read chunks until we find the expected event
+    const chunks: string[] = [];
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      chunks.push(decoder.decode(value, { stream: true }));
+      if (chunks.join('').includes('event: delete')) break;
+    }
+    expect(chunks.join('')).toContain('event: delete');
 
     controller.abort();
   });

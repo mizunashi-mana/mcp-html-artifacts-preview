@@ -23,11 +23,12 @@ function getText(result: { content: unknown[] }): string {
 
 describe('MCP tools integration', () => {
   let client: Client;
+  let mcpServer: McpServer;
   let pageStore: PageStore;
 
   beforeAll(async () => {
     pageStore = new PageStore();
-    const mcpServer = new McpServer({ name: 'test-server', version: '0.0.0' });
+    mcpServer = new McpServer({ name: 'test-server', version: '0.0.0' });
     registerTools({
       server: mcpServer,
       pageStore,
@@ -42,6 +43,7 @@ describe('MCP tools integration', () => {
 
   afterAll(async () => {
     await client.close();
+    await mcpServer.close();
   });
 
   describe('create_page', () => {
@@ -123,6 +125,7 @@ describe('MCP tools integration', () => {
       expect(data.map(p => p.title).sort()).toEqual(['A', 'B']);
 
       await c.close();
+      await mcpServer.close();
     });
   });
 
