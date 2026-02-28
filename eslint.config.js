@@ -4,6 +4,7 @@ export default [
   ...buildConfig({
     entrypointFiles: [
       "packages/mcp-html-artifacts-preview/src/index.ts",
+      "packages/mcp-html-artifacts-preview/src/cli.ts",
       "packages/mcp-html-artifacts-preview/scripts/cc-edit-lint-hook.mjs",
     ],
   }),

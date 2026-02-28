@@ -21,7 +21,7 @@ mcp-html-artifacts-preview/
 │   ├── tasks/                    # 個別タスク
 │   └── surveys/                  # 技術調査
 ├── .claude/                      # Claude Code 設定
-│   └── skills/                   # autodev スキル群
+│   └── skills/                   # スキル群
 │       ├── autodev-create-issue/     # GitHub Issue 作成
 │       ├── autodev-create-pr/        # PR 作成
 │       ├── autodev-discussion/       # 対話的アイデア整理
@@ -32,7 +32,16 @@ mcp-html-artifacts-preview/
 │       ├── autodev-start-new-survey/   # 技術調査開始
 │       ├── autodev-start-new-task/     # 個別タスク開始
 │       ├── autodev-steering/         # Steering ドキュメント更新
-│       └── autodev-switch-to-default/  # デフォルトブランチ切り替え
+│       ├── autodev-switch-to-default/  # デフォルトブランチ切り替え
+│       ├── bump-version/             # バージョンバンプ
+│       └── run-publish-workflow/     # npm publish ワークフロー実行
+├── .github/                      # GitHub 設定
+│   ├── actions/                  # 再利用可能アクション
+│   │   └── setup-node/           # Node.js セットアップアクション
+│   └── workflows/                # CI/CD ワークフロー
+│       ├── ci-lint.yml           # lint チェック
+│       ├── ci-test.yml           # テスト実行
+│       └── publish.yml           # npm パッケージ公開
 ├── CLAUDE.md                     # Claude Code 向けプロジェクト説明
 ├── README.md                     # プロジェクト README
 ├── LICENSE                       # ライセンスファイル（MPL-2.0 / Apache-2.0）
@@ -54,5 +63,12 @@ mcp-html-artifacts-preview/
         ├── package.json
         ├── tsconfig.json
         └── src/
-            └── index.ts          # エントリーポイント（MCP サーバー起動）
+            ├── index.ts          # ライブラリエントリーポイント（re-export）
+            ├── cli.ts            # CLI エントリーポイント（MCP サーバー起動）
+            ├── http-server.ts    # 組み込み HTTP サーバー（動的ポート・ホットリロード）
+            ├── page-store.ts     # ページ管理（メモリ内ストア）
+            ├── tools.ts          # MCP ツール定義
+            ├── http-server.test.ts  # HTTP サーバーのテスト
+            ├── page-store.test.ts   # ページ管理のテスト
+            └── tools.test.ts        # MCP ツールのテスト
 ```
