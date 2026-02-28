@@ -6,14 +6,14 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "mcp-html-artifacts-preview": "./dist/index.js"
+    "mcp-html-artifacts-preview": "./dist/cli.js"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run --passWithNoTests",
     "test:update": "vitest run --update --passWithNoTests",
     "lint:eslint": "eslint --cache --fix src",
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.0",
-    "zod": "^3.25.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@mcp-html-artifacts-preview/eslint-config": "*",
