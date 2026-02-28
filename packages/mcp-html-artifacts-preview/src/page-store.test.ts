@@ -127,4 +127,109 @@ describe('PageStore', () => {
       expect(retrieved?.html).toBe('<p>updated</p>');
     });
   });
+
+  describe('delete', () => {
+    it('should delete an existing page', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '<p>test</p>' });
+
+      expect(store.delete(page.id)).toBe(true);
+      expect(store.get(page.id)).toBeUndefined();
+    });
+
+    it('should return false for a non-existent id', () => {
+      const store = new PageStore();
+
+      expect(store.delete('non-existent')).toBe(false);
+    });
+
+    it('should remove the page from list', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '<p>test</p>' });
+
+      store.delete(page.id);
+
+      expect(store.list()).toHaveLength(0);
+    });
+  });
+
+  describe('addScripts', () => {
+    it('should add scripts to a page', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '<p>test</p>' });
+
+      const updated = store.addScripts(page.id, ['https://cdn.example.com/lib.js']);
+
+      expect(updated?.scripts).toEqual(['https://cdn.example.com/lib.js']);
+    });
+
+    it('should not add duplicate scripts', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '<p>test</p>' });
+
+      store.addScripts(page.id, ['https://cdn.example.com/lib.js']);
+      const updated = store.addScripts(page.id, ['https://cdn.example.com/lib.js', 'https://cdn.example.com/other.js']);
+
+      expect(updated?.scripts).toEqual([
+        'https://cdn.example.com/lib.js',
+        'https://cdn.example.com/other.js',
+      ]);
+    });
+
+    it('should return undefined for a non-existent id', () => {
+      const store = new PageStore();
+
+      expect(store.addScripts('non-existent', ['https://cdn.example.com/lib.js'])).toBeUndefined();
+    });
+
+    it('should update the updatedAt timestamp', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '' });
+      const originalUpdatedAt = page.updatedAt;
+
+      const updated = store.addScripts(page.id, ['https://cdn.example.com/lib.js']);
+
+      expect(updated?.updatedAt.getTime()).toBeGreaterThanOrEqual(originalUpdatedAt.getTime());
+    });
+  });
+
+  describe('addStylesheets', () => {
+    it('should add stylesheets to a page', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '<p>test</p>' });
+
+      const updated = store.addStylesheets(page.id, ['https://cdn.example.com/style.css']);
+
+      expect(updated?.stylesheets).toEqual(['https://cdn.example.com/style.css']);
+    });
+
+    it('should not add duplicate stylesheets', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '<p>test</p>' });
+
+      store.addStylesheets(page.id, ['https://cdn.example.com/style.css']);
+      const updated = store.addStylesheets(page.id, ['https://cdn.example.com/style.css', 'https://cdn.example.com/other.css']);
+
+      expect(updated?.stylesheets).toEqual([
+        'https://cdn.example.com/style.css',
+        'https://cdn.example.com/other.css',
+      ]);
+    });
+
+    it('should return undefined for a non-existent id', () => {
+      const store = new PageStore();
+
+      expect(store.addStylesheets('non-existent', ['https://cdn.example.com/style.css'])).toBeUndefined();
+    });
+  });
+
+  describe('create initializes scripts and stylesheets', () => {
+    it('should initialize scripts and stylesheets as empty arrays', () => {
+      const store = new PageStore();
+      const page = store.create({ title: 'Test', html: '' });
+
+      expect(page.scripts).toEqual([]);
+      expect(page.stylesheets).toEqual([]);
+    });
+  });
 });

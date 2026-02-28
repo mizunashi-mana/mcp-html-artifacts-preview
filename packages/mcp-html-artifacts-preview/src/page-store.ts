@@ -4,6 +4,8 @@ export interface Page {
   id: string;
   title: string;
   html: string;
+  scripts: string[];
+  stylesheets: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +29,8 @@ export class PageStore {
       id: randomUUID(),
       title: params.title,
       html: params.html,
+      scripts: [],
+      stylesheets: [],
       createdAt: now,
       updatedAt: now,
     };
@@ -53,6 +57,40 @@ export class PageStore {
     }
     if (params.html !== undefined) {
       page.html = params.html;
+    }
+    page.updatedAt = new Date();
+    return page;
+  }
+
+  delete(id: string): boolean {
+    return this.#pages.delete(id);
+  }
+
+  addScripts(id: string, urls: string[]): Page | undefined {
+    const page = this.#pages.get(id);
+    if (!page) {
+      return undefined;
+    }
+
+    for (const url of urls) {
+      if (!page.scripts.includes(url)) {
+        page.scripts.push(url);
+      }
+    }
+    page.updatedAt = new Date();
+    return page;
+  }
+
+  addStylesheets(id: string, urls: string[]): Page | undefined {
+    const page = this.#pages.get(id);
+    if (!page) {
+      return undefined;
+    }
+
+    for (const url of urls) {
+      if (!page.stylesheets.includes(url)) {
+        page.stylesheets.push(url);
+      }
     }
     page.updatedAt = new Date();
     return page;
