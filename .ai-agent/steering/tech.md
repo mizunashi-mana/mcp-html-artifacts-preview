@@ -6,10 +6,11 @@
 - **ランタイム**: Node.js 22 LTS
 - **パッケージマネージャ**: npm
 - **MCP SDK**: @modelcontextprotocol/sdk
+- **バリデーション**: zod
 - **ビルド**: tsc（TypeScript Compiler）
 - **テスト**: vitest
 - **リンター/フォーマッター**: eslint, prettier
-- **CI**: GitHub Actions
+- **CI/CD**: GitHub Actions（CI lint/test、publish ワークフロー）
 
 ## アーキテクチャ概要
 
@@ -70,7 +71,7 @@ npm run dev       # 開発モード（watch）
 npm run build     # ビルド
 npm run test      # テスト実行
 npm run lint      # リント
-npm run format    # フォーマット
+npm run typecheck # 型チェック
 ```
 
 ## テスト戦略
@@ -80,6 +81,6 @@ npm run format    # フォーマット
 
 ## パッケージ配布
 
-- npm パッケージとして公開
+- `@mizunashi_mana/mcp-html-artifacts-preview` として npm に公開済み
 - `npx mcp-html-artifacts-preview` で即座に起動可能
-- MCP 設定例を README に記載
+- GitHub Actions の `publish.yml` ワークフローで npm provenance 付き公開・タグ・リリース作成を自動化
