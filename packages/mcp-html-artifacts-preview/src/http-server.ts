@@ -17,7 +17,8 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   const { pageStore, hostname = '127.0.0.1' } = options;
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const url = new URL(req.url ?? '/', `http://${hostname}`);
+    const baseUrl = hostname.includes(':') ? `http://[${hostname}]` : `http://${hostname}`;
+    const url = new URL(req.url ?? '/', baseUrl);
 
     if (req.method !== 'GET') {
       res.writeHead(405, { 'Content-Type': 'text/plain' });
@@ -61,7 +62,8 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   if (typeof address !== 'object' || address === null) {
     throw new Error('Unexpected server address type');
   }
-  const baseUrl = `http://${hostname}:${String(address.port)}`;
+  const host = hostname.includes(':') ? `[${hostname}]` : hostname;
+  const baseUrl = `http://${host}:${String(address.port)}`;
 
   return {
     server,

@@ -40,7 +40,7 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
   server.registerTool(
     'update_page',
     {
-      description: 'Update the HTML content of an existing page',
+      description: 'Update the HTML content of an existing page. At least one of title or html must be provided.',
       inputSchema: {
         id: z.string().describe('Page ID to update'),
         title: z.string().optional().describe('New page title'),
