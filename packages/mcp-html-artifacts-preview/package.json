@@ -14,8 +14,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest run",
-    "test:update": "vitest run --update",
+    "test": "vitest run --passWithNoTests",
+    "test:update": "vitest run --update --passWithNoTests",
     "lint:eslint": "eslint --cache --fix src",
     "typecheck": "tsc --noEmit"
   },
