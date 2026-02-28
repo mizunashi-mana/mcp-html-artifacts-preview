@@ -33,15 +33,26 @@ mcp-html-artifacts-preview/
 │       ├── autodev-start-new-task/     # 個別タスク開始
 │       ├── autodev-steering/         # Steering ドキュメント更新
 │       └── autodev-switch-to-default/  # デフォルトブランチ切り替え
-├── CLAUDE.md                     # Claude Code 向けプロジェクト説明（未作成）
-├── README.md                     # プロジェクト README（未作成）
-├── LICENSE                       # ライセンスファイル（未作成）
-├── package.json                  # npm パッケージ定義（未作成）
-├── tsconfig.json                 # TypeScript 設定（未作成）
-└── src/                          # ソースコード（未作成）
+├── CLAUDE.md                     # Claude Code 向けプロジェクト説明
+├── README.md                     # プロジェクト README
+├── LICENSE                       # ライセンスファイル（MPL-2.0 / Apache-2.0）
+├── LICENSE-APACHE                # Apache License 2.0 全文
+├── LICENSE-MPL                   # MPL 2.0 全文
+├── package.json                  # ルート npm ワークスペース定義
+├── eslint.config.js              # ルート ESLint 設定
+├── devenv.nix                    # Nix 開発環境設定
+├── scripts/                      # 開発ユーティリティスクリプト
+│   ├── cc-edit-lint-hook.mjs     # Claude Code edit lint hook
+│   └── run-script.mjs            # pre-commit フック用スクリプトランナー
+└── packages/                     # npm ワークスペースパッケージ群
+    ├── eslint-config/            # 共有 ESLint 設定パッケージ
+    │   ├── package.json
+    │   ├── tsconfig.json
+    │   ├── tsup.config.ts
+    │   └── src/                  # ESLint ルール設定モジュール
+    └── mcp-html-artifacts-preview/  # メインパッケージ（MCP サーバー）
+        ├── package.json
+        ├── tsconfig.json
+        └── src/
+            └── index.ts          # エントリーポイント（MCP サーバー起動）
 ```
-
-## 注記
-
-- `（未作成）` のファイル/ディレクトリは plan.md Phase 1 で作成予定
-- ソースコードの詳細な構成は実装開始後に更新する
