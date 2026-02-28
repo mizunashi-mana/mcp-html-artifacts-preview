@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { EventEmitter } from 'node:events';
 
 export interface Page {
   id: string;
@@ -20,8 +21,28 @@ export interface UpdatePageParams {
   html?: string;
 }
 
+export type PageChangeType = 'update' | 'delete';
+
+export interface PageChangeEvent {
+  type: PageChangeType;
+  pageId: string;
+}
+
 export class PageStore {
   readonly #pages = new Map<string, Page>();
+  readonly #emitter = new EventEmitter();
+
+  constructor() {
+    this.#emitter.setMaxListeners(0);
+  }
+
+  onChange(listener: (event: PageChangeEvent) => void): void {
+    this.#emitter.on('change', listener);
+  }
+
+  offChange(listener: (event: PageChangeEvent) => void): void {
+    this.#emitter.off('change', listener);
+  }
 
   create(params: CreatePageParams): Page {
     const now = new Date();
@@ -59,11 +80,16 @@ export class PageStore {
       page.html = params.html;
     }
     page.updatedAt = new Date();
+    this.#emitter.emit('change', { type: 'update', pageId: id } satisfies PageChangeEvent);
     return page;
   }
 
   delete(id: string): boolean {
-    return this.#pages.delete(id);
+    const deleted = this.#pages.delete(id);
+    if (deleted) {
+      this.#emitter.emit('change', { type: 'delete', pageId: id } satisfies PageChangeEvent);
+    }
+    return deleted;
   }
 
   addScripts(id: string, urls: string[]): Page | undefined {
@@ -78,6 +104,7 @@ export class PageStore {
       }
     }
     page.updatedAt = new Date();
+    this.#emitter.emit('change', { type: 'update', pageId: id } satisfies PageChangeEvent);
     return page;
   }
 
@@ -93,6 +120,7 @@ export class PageStore {
       }
     }
     page.updatedAt = new Date();
+    this.#emitter.emit('change', { type: 'update', pageId: id } satisfies PageChangeEvent);
     return page;
   }
 }
