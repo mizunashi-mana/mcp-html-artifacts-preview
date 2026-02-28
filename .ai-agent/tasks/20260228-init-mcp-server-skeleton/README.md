@@ -19,7 +19,7 @@ Phase 1 の残りタスクとして、メインパッケージ `packages/mcp-htm
 - [x] `npm run build` が成功する
 - [x] `npm run lint` がエラーなし
 - [x] `npm run typecheck` がエラーなし
-- [ ] PR を作成済み
+- [x] PR を作成済み
 
 ## 作業ログ
 
@@ -27,3 +27,4 @@ Phase 1 の残りタスクとして、メインパッケージ `packages/mcp-htm
 - tsconfig.json 作成: tsc ビルド、dist/ 出力、ES2022 + Node16 モジュール
 - src/index.ts 作成: McpServer + StdioServerTransport による最小構成
 - build / typecheck / lint すべてパス確認済み
+- PR #1 作成: https://github.com/mizunashi-mana/mcp-html-artifacts-preview/pull/1
