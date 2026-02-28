@@ -3,6 +3,7 @@
     "allow": [
       "Bash(npm run build:*)",
       "Bash(npm run lint:*)",
+      "Bash(npm run lint:eslint:*)",
       "Bash(npm run typecheck:*)",
       "Bash(npm run test:*)",
       "Bash(npm run test:update:*)",
