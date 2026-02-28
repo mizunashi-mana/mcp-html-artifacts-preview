@@ -4,7 +4,10 @@
       "Bash(npm run build:*)",
       "Bash(npm run lint:*)",
       "Bash(npm run typecheck:*)",
-      "Skill(autodev-create-pr)"
+      "Bash(npm run test:*)",
+      "Bash(npm run test:update:*)",
+      "Skill(autodev-create-pr)",
+      "Skill(autodev-start-new-task)"
     ],
     "deny": [
       "Bash(pnpm:*)",
