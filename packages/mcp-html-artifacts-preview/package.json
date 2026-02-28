@@ -1,6 +1,6 @@
 {
   "name": "@mizunashi_mana/mcp-html-artifacts-preview",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for previewing AI-generated HTML artifacts in the browser",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,9 +9,12 @@
     "mcp-html-artifacts-preview": "./dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE-APACHE",
+    "LICENSE-MPL"
   ],
   "scripts": {
+    "prepack": "cp ../../README.md ../../LICENSE ../../LICENSE-APACHE ../../LICENSE-MPL .",
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run",
@@ -25,7 +28,18 @@
     "preview",
     "artifacts"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mizunashi-mana/mcp-html-artifacts-preview",
+    "directory": "packages/mcp-html-artifacts-preview"
+  },
+  "homepage": "https://github.com/mizunashi-mana/mcp-html-artifacts-preview",
   "license": "Apache-2.0 OR MPL-2.0",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "provenance": true
+  },
   "engines": {
     "node": ">=22.0.0"
   },
