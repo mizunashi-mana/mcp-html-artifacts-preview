@@ -32,6 +32,10 @@ export class PageStore {
   readonly #pages = new Map<string, Page>();
   readonly #emitter = new EventEmitter();
 
+  constructor() {
+    this.#emitter.setMaxListeners(0);
+  }
+
   onChange(listener: (event: PageChangeEvent) => void): void {
     this.#emitter.on('change', listener);
   }

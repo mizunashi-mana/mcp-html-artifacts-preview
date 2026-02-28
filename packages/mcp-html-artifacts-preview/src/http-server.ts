@@ -33,6 +33,7 @@ function handleSseConnection(pageStore: PageStore, pageId: string, req: Incoming
     }
     res.write(`event: ${event.type}\ndata: {}\n\n`);
     if (event.type === 'delete') {
+      pageStore.offChange(listener);
       res.end();
     }
   };
