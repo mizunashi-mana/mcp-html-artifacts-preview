@@ -8,7 +8,8 @@
       "Bash(npm run test:*)",
       "Bash(npm run test:update:*)",
       "Skill(autodev-create-pr)",
-      "Skill(autodev-start-new-task)"
+      "Skill(autodev-start-new-task)",
+      "Skill(autodev-steering)"
     ],
     "deny": [
       "Bash(pnpm:*)",
