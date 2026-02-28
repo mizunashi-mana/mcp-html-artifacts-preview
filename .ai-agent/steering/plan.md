@@ -6,19 +6,19 @@
 
 ## 完了済み機能
 
-（なし - プロジェクト開始前）
+- Phase 1: プロジェクト基盤（autodev 環境、npm ワークスペース、ESLint、MCP サーバー骨格）
 
 ## 進行中の作業
 
-- プロジェクト基盤のセットアップ（autodev 環境初期化）
+（なし）
 
 ## 今後の計画
 
-### Phase 1: プロジェクト基盤（現在）
+### Phase 1: プロジェクト基盤（完了）
 
 - [x] autodev 環境初期化
-- [ ] npm パッケージ初期化（package.json、tsconfig.json、eslint、prettier）
-- [ ] MCP サーバーの基本骨格実装
+- [x] npm パッケージ初期化（package.json、tsconfig.json、eslint、prettier）
+- [x] MCP サーバーの基本骨格実装
 
 ### Phase 2: コア機能実装
 
