@@ -100,7 +100,7 @@ allowed-tools: Read, Write, Edit, MultiEdit, Update, Bash(mkdir:*), Glob, Grep, 
 
 #### 視覚的な整理（任意）
 
-html-sync MCP（`create_page` / `update_page` ツール）が利用可能な場合、調査結果の提示に HTML による可視化を活用する。
+html-artifacts-preview MCP（`create_page` / `update_page` ツール）が利用可能な場合、調査結果の提示に HTML による可視化を活用する。
 
 - 選択肢の比較表、技術スタックの関係図、評価レーダーチャートなど
 - Chart.js や Mermaid.js などの CDN ライブラリを `scripts` パラメータで読み込んで活用してもよい
