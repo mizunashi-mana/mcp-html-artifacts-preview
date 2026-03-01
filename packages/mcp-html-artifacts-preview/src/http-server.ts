@@ -54,7 +54,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
       res.end('Bad Request');
       return;
     }
-    const pathname = req.url;
+    const pathname = req.url.split('?')[0] ?? '/';
 
     if (req.method !== 'GET') {
       res.writeHead(405, { 'Content-Type': 'text/plain' });
