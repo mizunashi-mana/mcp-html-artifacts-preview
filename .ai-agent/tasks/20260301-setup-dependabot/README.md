@@ -20,7 +20,7 @@ GitHub Dependabot を設定し、依存関係の自動更新 PR を受け取れ�
 - [x] `.github/dependabot.yml` が作成されている
 - [x] github-actions と npm の 2 つのエコシステムが設定されている
 - [x] CI が通る（ローカル lint/test/build 全パス）
-- [ ] PR が作成されている
+- [x] PR が作成されている
 
 ## 作業ログ
 
