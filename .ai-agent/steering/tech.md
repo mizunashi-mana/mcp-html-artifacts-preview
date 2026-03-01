@@ -50,8 +50,8 @@
 
 | ツール | 説明 |
 |--------|------|
-| `create_page` | HTML ページを作成し URL を返却（`name` で名前付与可能） |
-| `update_page` | ページの HTML・タイトル・名前を更新 |
+| `create_page` | HTML ページを作成し URL を返却 |
+| `update_page` | ページの HTML・タイトルを更新 |
 | `destroy_page` | ページを削除（削除済み履歴として保持） |
 | `get_pages` | 作成済みページ一覧を取得（`includeDeleted` で削除済みも表示） |
 | `get_page` | 特定ページの HTML を取得 |

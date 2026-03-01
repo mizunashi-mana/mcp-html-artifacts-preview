@@ -42,8 +42,8 @@ Add to your MCP client configuration:
 
 | Tool | Description |
 |------|-------------|
-| `create_page` | Create an HTML page and get a browser-accessible URL (supports `name` for labeling) |
-| `update_page` | Update page content, title, or name (triggers hot reload) |
+| `create_page` | Create an HTML page and get a browser-accessible URL |
+| `update_page` | Update page content or title (triggers hot reload) |
 | `destroy_page` | Remove a page (kept in deleted history) |
 | `get_pages` | List all created pages (use `includeDeleted` to show deleted ones too) |
 | `get_page` | Get the HTML content of a specific page |
