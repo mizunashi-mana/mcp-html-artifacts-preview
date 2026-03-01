@@ -7,7 +7,6 @@ import type { Page } from './page-store.js';
 function makePage(overrides: Partial<Page> = {}): Page {
   return {
     id: 'test-id',
-    name: undefined,
     title: 'Test',
     html: '<html><head><title>Test</title></head><body><p>Hello</p></body></html>',
     scripts: [],
@@ -118,30 +117,21 @@ describe('buildDashboardHtml', () => {
 
   it('should show latest artifact in iframe and pages in selector', () => {
     const store = new PageStore();
-    const page = store.create({ title: 'My Page', html: '<p>test</p>', name: 'my-page' });
+    const page = store.create({ title: 'My Page', html: '<p>test</p>' });
 
     const html = buildDashboardHtml(store);
 
-    expect(html).toContain('my-page: My Page');
+    expect(html).toContain('>My Page</option>');
     expect(html).toContain(`<iframe`);
     expect(html).toContain(`/pages/${page.id}`);
     expect(html).toContain('<select');
     expect(html).toMatch(/empty-message"[^>]*style="display:none"/);
   });
 
-  it('should show only title for pages without a name', () => {
-    const store = new PageStore();
-    store.create({ title: 'Unnamed', html: '<p>test</p>' });
-
-    const html = buildDashboardHtml(store);
-
-    expect(html).toContain('>Unnamed</option>');
-  });
-
   it('should select the most recently updated page', () => {
     const store = new PageStore();
-    const older = store.create({ title: 'Older', html: '<p>old</p>', name: 'old' });
-    const newer = store.create({ title: 'Newer', html: '<p>new</p>', name: 'new' });
+    const older = store.create({ title: 'Older', html: '<p>old</p>' });
+    const newer = store.create({ title: 'Newer', html: '<p>new</p>' });
 
     // Update the older page to make it the most recent
     store.update(older.id, { html: '<p>updated</p>' });
@@ -156,16 +146,14 @@ describe('buildDashboardHtml', () => {
     expect(html).not.toMatch(new RegExp(`<option value="${newer.id}" selected>`));
   });
 
-  it('should escape HTML in name and title', () => {
+  it('should escape HTML in title', () => {
     const store = new PageStore();
-    store.create({ title: '<script>alert(1)</script>', html: '<p>test</p>', name: '<b>xss</b>' });
+    store.create({ title: '<script>alert(1)</script>', html: '<p>test</p>' });
 
     const html = buildDashboardHtml(store);
 
     expect(html).not.toContain('<script>alert(1)</script>');
     expect(html).toContain('&lt;script&gt;');
-    expect(html).not.toContain('<b>xss</b>');
-    expect(html).toContain('&lt;b&gt;xss&lt;/b&gt;');
   });
 
   it('should include SSE script for live updates', () => {
@@ -370,12 +358,11 @@ describe('HTTP server integration', () => {
     });
 
     it('should list existing pages in the dashboard', async () => {
-      const page = pageStore.create({ title: 'Dashboard Test', html: '<p>test</p>', name: 'test-artifact' });
+      const page = pageStore.create({ title: 'Dashboard Test', html: '<p>test</p>' });
 
       const res = await fetch(httpServer.url);
       const body = await res.text();
 
-      expect(body).toContain('test-artifact');
       expect(body).toContain('Dashboard Test');
       expect(body).toContain(`/pages/${page.id}`);
     });
@@ -403,7 +390,7 @@ describe('HTTP server integration', () => {
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
 
-      pageStore.create({ title: 'SSE Create', html: '<p>new</p>', name: 'new-artifact' });
+      pageStore.create({ title: 'SSE Create', html: '<p>new</p>' });
 
       const chunks: string[] = [];
       while (true) {
@@ -414,7 +401,7 @@ describe('HTTP server integration', () => {
       }
       const output = chunks.join('');
       expect(output).toContain('event: create');
-      expect(output).toContain('"name":"new-artifact"');
+      expect(output).toContain('"title":"SSE Create"');
 
       controller.abort();
     });

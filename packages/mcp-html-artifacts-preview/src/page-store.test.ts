@@ -21,20 +21,6 @@ describe('PageStore', () => {
       expect(page1.id).not.toBe(page2.id);
     });
 
-    it('should create a page with a name', () => {
-      const store = new PageStore();
-      const page = store.create({ title: 'Test', html: '', name: 'my-artifact' });
-
-      expect(page.name).toBe('my-artifact');
-    });
-
-    it('should create a page without a name', () => {
-      const store = new PageStore();
-      const page = store.create({ title: 'Test', html: '' });
-
-      expect(page.name).toBeUndefined();
-    });
-
     it('should set createdAt and updatedAt to the same time', () => {
       const store = new PageStore();
       const page = store.create({ title: 'Test', html: '' });
@@ -122,15 +108,6 @@ describe('PageStore', () => {
       const updated = store.update(page.id, { title: 'Updated' });
 
       expect(updated?.createdAt).toBe(originalCreatedAt);
-    });
-
-    it('should update the name of an existing page', () => {
-      const store = new PageStore();
-      const page = store.create({ title: 'Title', html: '' });
-
-      const updated = store.update(page.id, { name: 'new-name' });
-
-      expect(updated?.name).toBe('new-name');
     });
 
     it('should return undefined for a non-existent id', () => {
@@ -269,14 +246,13 @@ describe('PageStore', () => {
 
     it('should create a tombstone for evicted pages', () => {
       const store = new PageStore({ maxPages: 1 });
-      const page1 = store.create({ title: 'Page 1', html: '<p>1</p>', name: 'first' });
+      const page1 = store.create({ title: 'Page 1', html: '<p>1</p>' });
       store.create({ title: 'Page 2', html: '<p>2</p>' });
 
       const tombstones = store.listTombstones();
       expect(tombstones).toHaveLength(1);
       expect(tombstones[0]?.id).toBe(page1.id);
       expect(tombstones[0]?.title).toBe('Page 1');
-      expect(tombstones[0]?.name).toBe('first');
     });
 
     it('should emit delete events for evicted pages', () => {
@@ -304,7 +280,7 @@ describe('PageStore', () => {
   describe('tombstones', () => {
     it('should create a tombstone when a page is deleted', () => {
       const store = new PageStore();
-      const page = store.create({ title: 'To Delete', html: '<p>bye</p>', name: 'my-page' });
+      const page = store.create({ title: 'To Delete', html: '<p>bye</p>' });
 
       store.delete(page.id);
 
@@ -312,7 +288,6 @@ describe('PageStore', () => {
       expect(tombstones).toHaveLength(1);
       expect(tombstones[0]?.id).toBe(page.id);
       expect(tombstones[0]?.title).toBe('To Delete');
-      expect(tombstones[0]?.name).toBe('my-page');
       expect(tombstones[0]?.deletedAt).toBeInstanceOf(Date);
     });
 
