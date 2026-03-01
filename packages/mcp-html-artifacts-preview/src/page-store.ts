@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events';
 
 export interface Page {
   id: string;
+  name: string | undefined;
   title: string;
   html: string;
   scripts: string[];
@@ -14,14 +15,16 @@ export interface Page {
 export interface CreatePageParams {
   title: string;
   html: string;
+  name?: string;
 }
 
 export interface UpdatePageParams {
   title?: string;
   html?: string;
+  name?: string;
 }
 
-export type PageChangeType = 'update' | 'delete';
+export type PageChangeType = 'create' | 'update' | 'delete';
 
 export interface PageChangeEvent {
   type: PageChangeType;
@@ -48,6 +51,7 @@ export class PageStore {
     const now = new Date();
     const page: Page = {
       id: randomUUID(),
+      name: params.name,
       title: params.title,
       html: params.html,
       scripts: [],
@@ -56,6 +60,7 @@ export class PageStore {
       updatedAt: now,
     };
     this.#pages.set(page.id, page);
+    this.#emitter.emit('change', { type: 'create', pageId: page.id } satisfies PageChangeEvent);
     return page;
   }
 
@@ -73,6 +78,9 @@ export class PageStore {
       return undefined;
     }
 
+    if (params.name !== undefined) {
+      page.name = params.name;
+    }
     if (params.title !== undefined) {
       page.title = params.title;
     }
@@ -85,11 +93,12 @@ export class PageStore {
   }
 
   delete(id: string): boolean {
-    const deleted = this.#pages.delete(id);
-    if (deleted) {
-      this.#emitter.emit('change', { type: 'delete', pageId: id } satisfies PageChangeEvent);
+    if (!this.#pages.has(id)) {
+      return false;
     }
-    return deleted;
+    this.#emitter.emit('change', { type: 'delete', pageId: id } satisfies PageChangeEvent);
+    this.#pages.delete(id);
+    return true;
   }
 
   addScripts(id: string, urls: string[]): Page | undefined {

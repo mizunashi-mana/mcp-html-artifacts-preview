@@ -16,12 +16,13 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
     {
       description: 'Create an HTML page and return its preview URL',
       inputSchema: {
+        name: z.string().optional().describe('Artifact name (human-readable identifier)'),
         title: z.string().describe('Page title'),
         html: z.string().describe('HTML content of the page'),
       },
     },
-    ({ title, html }) => {
-      const page = pageStore.create({ title, html });
+    ({ name, title, html }) => {
+      const page = pageStore.create({ name, title, html });
       const url = `${getBaseUrl()}/pages/${page.id}`;
       return {
         content: [
@@ -29,6 +30,7 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
             type: 'text' as const,
             text: JSON.stringify({
               id: page.id,
+              name: page.name,
               title: page.title,
               url,
               createdAt: page.createdAt.toISOString(),
@@ -42,21 +44,22 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
   server.registerTool(
     'update_page',
     {
-      description: 'Update the HTML content of an existing page. At least one of title or html must be provided.',
+      description: 'Update the HTML content of an existing page. At least one of name, title, or html must be provided.',
       inputSchema: {
         id: z.string().describe('Page ID to update'),
+        name: z.string().optional().describe('New artifact name'),
         title: z.string().optional().describe('New page title'),
         html: z.string().optional().describe('New HTML content'),
       },
     },
-    ({ id, title, html }) => {
-      if (title === undefined && html === undefined) {
+    ({ id, name, title, html }) => {
+      if (name === undefined && title === undefined && html === undefined) {
         return {
-          content: [{ type: 'text' as const, text: 'At least one of title or html must be provided' }],
+          content: [{ type: 'text' as const, text: 'At least one of name, title, or html must be provided' }],
           isError: true,
         };
       }
-      const page = pageStore.update(id, { title, html });
+      const page = pageStore.update(id, { name, title, html });
       if (!page) {
         return {
           content: [{ type: 'text' as const, text: `Page not found: ${id}` }],
@@ -70,6 +73,7 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
             type: 'text' as const,
             text: JSON.stringify({
               id: page.id,
+              name: page.name,
               title: page.title,
               url,
               updatedAt: page.updatedAt.toISOString(),
@@ -89,6 +93,7 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
       const pages = pageStore.list();
       const result = pages.map(page => ({
         id: page.id,
+        name: page.name,
         title: page.title,
         url: `${getBaseUrl()}/pages/${page.id}`,
         createdAt: page.createdAt.toISOString(),
@@ -122,6 +127,7 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
             type: 'text' as const,
             text: JSON.stringify({
               id: page.id,
+              name: page.name,
               title: page.title,
               html: page.html,
               url: `${getBaseUrl()}/pages/${page.id}`,

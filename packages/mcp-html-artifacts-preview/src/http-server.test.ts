@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { buildHtml, startHttpServer } from './http-server.js';
+import { buildDashboardHtml, buildHtml, startHttpServer } from './http-server.js';
 import { PageStore } from './page-store.js';
 import type { HttpServer } from './http-server.js';
 import type { Page } from './page-store.js';
@@ -7,6 +7,7 @@ import type { Page } from './page-store.js';
 function makePage(overrides: Partial<Page> = {}): Page {
   return {
     id: 'test-id',
+    name: undefined,
     title: 'Test',
     html: '<html><head><title>Test</title></head><body><p>Hello</p></body></html>',
     scripts: [],
@@ -103,6 +104,57 @@ describe('buildHtml', () => {
     expect(result).toContain('new EventSource(location.pathname+"/events")');
     expect(result).toContain('addEventListener("update"');
     expect(result).toContain('addEventListener("delete"');
+  });
+});
+
+describe('buildDashboardHtml', () => {
+  it('should show empty message when no pages exist', () => {
+    const store = new PageStore();
+    const html = buildDashboardHtml(store);
+
+    expect(html).toContain('No artifacts yet');
+    expect(html).not.toContain('<table>');
+  });
+
+  it('should list pages with name, title, and links', () => {
+    const store = new PageStore();
+    const page = store.create({ title: 'My Page', html: '<p>test</p>', name: 'my-page' });
+
+    const html = buildDashboardHtml(store);
+
+    expect(html).toContain('my-page');
+    expect(html).toContain('My Page');
+    expect(html).toContain(`/pages/${page.id}`);
+    expect(html).not.toContain('No artifacts yet');
+  });
+
+  it('should show dash for pages without a name', () => {
+    const store = new PageStore();
+    store.create({ title: 'Unnamed', html: '<p>test</p>' });
+
+    const html = buildDashboardHtml(store);
+
+    expect(html).toContain('—');
+  });
+
+  it('should escape HTML in name and title', () => {
+    const store = new PageStore();
+    store.create({ title: '<script>alert(1)</script>', html: '<p>test</p>', name: '<b>xss</b>' });
+
+    const html = buildDashboardHtml(store);
+
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).not.toContain('<b>xss</b>');
+    expect(html).toContain('&lt;b&gt;xss&lt;/b&gt;');
+  });
+
+  it('should include SSE script for live updates', () => {
+    const store = new PageStore();
+    const html = buildDashboardHtml(store);
+
+    expect(html).toContain('EventSource("/events")');
+    expect(html).toContain('addEventListener("create"');
   });
 });
 
@@ -245,5 +297,66 @@ describe('HTTP server integration', () => {
 
   it('should assign a dynamic port', () => {
     expect(httpServer.url).toMatch(/^http:\/\/localhost:\d+$/);
+  });
+
+  describe('dashboard', () => {
+    it('should serve dashboard at root URL', async () => {
+      const res = await fetch(httpServer.url);
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+      const body = await res.text();
+      expect(body).toContain('MCP HTML Artifacts');
+    });
+
+    it('should list existing pages in the dashboard', async () => {
+      const page = pageStore.create({ title: 'Dashboard Test', html: '<p>test</p>', name: 'test-artifact' });
+
+      const res = await fetch(httpServer.url);
+      const body = await res.text();
+
+      expect(body).toContain('test-artifact');
+      expect(body).toContain('Dashboard Test');
+      expect(body).toContain(`/pages/${page.id}`);
+    });
+  });
+
+  describe('global SSE', () => {
+    it('should return SSE stream at /events', async () => {
+      const controller = new AbortController();
+      const res = await fetch(`${httpServer.url}/events`, {
+        signal: controller.signal,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toBe('text/event-stream');
+
+      controller.abort();
+    });
+
+    it('should send create event when a page is created', async () => {
+      const controller = new AbortController();
+      const res = await fetch(`${httpServer.url}/events`, {
+        signal: controller.signal,
+      });
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+
+      pageStore.create({ title: 'SSE Create', html: '<p>new</p>', name: 'new-artifact' });
+
+      const chunks: string[] = [];
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        chunks.push(decoder.decode(value, { stream: true }));
+        if (chunks.join('').includes('event: create')) break;
+      }
+      const output = chunks.join('');
+      expect(output).toContain('event: create');
+      expect(output).toContain('"name":"new-artifact"');
+
+      controller.abort();
+    });
   });
 });
