@@ -41,19 +41,30 @@
 2. MCP サーバーが HTML コンテンツをメモリに保持
 3. 組み込み HTTP サーバーが動的ポートでリッスン
 4. ブラウザが HTTP サーバーからページを取得・表示
-5. `update_page` 時は WebSocket/SSE でホットリロード通知
+5. `update_page` 時は SSE でホットリロード通知
+6. ダッシュボード（`/`）がグローバル SSE（`/events`）で create/update/delete イベントを受信
+7. 初回 `create_page` 時にブラウザを自動オープン（`--no-open` で無効化）
+8. ダッシュボードは新規ページ作成時に自動的にそのページへ遷移
 
 ### MCP ツール
 
 | ツール | 説明 |
 |--------|------|
-| `create_page` | HTML ページを作成し URL を返却 |
-| `update_page` | ページの HTML を更新 |
-| `destroy_page` | ページを削除 |
-| `get_pages` | 作成済みページ一覧を取得 |
+| `create_page` | HTML ページを作成し URL を返却（`name` で名前付与可能） |
+| `update_page` | ページの HTML・タイトル・名前を更新 |
+| `destroy_page` | ページを削除（削除済み履歴として保持） |
+| `get_pages` | 作成済みページ一覧を取得（`includeDeleted` で削除済みも表示） |
 | `get_page` | 特定ページの HTML を取得 |
 | `add_scripts` | CDN スクリプトを追加 |
 | `add_stylesheets` | 外部スタイルシートを追加 |
+
+### CLI オプション
+
+| オプション | 説明 |
+|-----------|------|
+| `--no-open` | ブラウザ自動オープンを無効化 |
+| `--max-pages <N>` | ページ保持上限（超過時は古いページを自動削除） |
+| `--ttl <seconds>` | ページ有効期限（秒）。期限切れページを自動クリーンアップ |
 
 ## 開発環境
 
