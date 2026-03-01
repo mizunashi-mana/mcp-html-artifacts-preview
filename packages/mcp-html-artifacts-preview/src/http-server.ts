@@ -49,7 +49,12 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   const { pageStore, hostname = 'localhost' } = options;
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const pathname = req.url ?? '/';
+    if (req.url === undefined) {
+      res.writeHead(400, { 'Content-Type': 'text/plain' });
+      res.end('Bad Request');
+      return;
+    }
+    const pathname = req.url;
 
     if (req.method !== 'GET') {
       res.writeHead(405, { 'Content-Type': 'text/plain' });
