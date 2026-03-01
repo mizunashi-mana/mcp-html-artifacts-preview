@@ -144,6 +144,67 @@ describe('MCP tools integration', () => {
       await c.close();
       await mcpServer.close();
     });
+
+    it('should include deleted pages when include_deleted is true', async () => {
+      const store = new PageStore();
+      const mcpServer = new McpServer({ name: 'test-deleted', version: '0.0.0' });
+      registerTools({
+        server: mcpServer,
+        pageStore: store,
+        getBaseUrl: () => 'http://localhost:3000',
+      });
+
+      const [ct, st] = InMemoryTransport.createLinkedPair();
+      await mcpServer.connect(st);
+      const c = new Client({ name: 'test-deleted-client', version: '0.0.0' });
+      await c.connect(ct);
+
+      const createResult = await c.callTool({ name: 'create_page', arguments: { title: 'To Delete', html: '<p>bye</p>' } });
+      const created = parseText(createResult as { content: unknown[] }) as { id: string };
+      await c.callTool({ name: 'create_page', arguments: { title: 'Alive', html: '<p>hi</p>' } });
+      await c.callTool({ name: 'destroy_page', arguments: { id: created.id } });
+
+      const result = await c.callTool({ name: 'get_pages', arguments: { includeDeleted: true } });
+      const data = parseText(result as { content: unknown[] }) as Array<{ title: string; deleted?: boolean }>;
+
+      expect(data).toHaveLength(2);
+      const alive = data.find(p => p.title === 'Alive');
+      const deleted = data.find(p => p.title === 'To Delete');
+      expect(alive).toBeDefined();
+      expect(alive?.deleted).toBeUndefined();
+      expect(deleted).toBeDefined();
+      expect(deleted?.deleted).toBe(true);
+
+      await c.close();
+      await mcpServer.close();
+    });
+
+    it('should not include deleted pages by default', async () => {
+      const store = new PageStore();
+      const mcpServer = new McpServer({ name: 'test-no-deleted', version: '0.0.0' });
+      registerTools({
+        server: mcpServer,
+        pageStore: store,
+        getBaseUrl: () => 'http://localhost:3000',
+      });
+
+      const [ct, st] = InMemoryTransport.createLinkedPair();
+      await mcpServer.connect(st);
+      const c = new Client({ name: 'test-no-deleted-client', version: '0.0.0' });
+      await c.connect(ct);
+
+      const createResult = await c.callTool({ name: 'create_page', arguments: { title: 'To Delete', html: '<p>bye</p>' } });
+      const created = parseText(createResult as { content: unknown[] }) as { id: string };
+      await c.callTool({ name: 'destroy_page', arguments: { id: created.id } });
+
+      const result = await c.callTool({ name: 'get_pages', arguments: {} });
+      const data = parseText(result as { content: unknown[] }) as Array<{ title: string }>;
+
+      expect(data).toHaveLength(0);
+
+      await c.close();
+      await mcpServer.close();
+    });
   });
 
   describe('update_page', () => {
