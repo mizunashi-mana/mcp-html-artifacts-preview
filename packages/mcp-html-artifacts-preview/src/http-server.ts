@@ -49,7 +49,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   const { pageStore, hostname = 'localhost' } = options;
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const url = new URL(req.url ?? '/', 'http://localhost');
+    const pathname = req.url ?? '/';
 
     if (req.method !== 'GET') {
       res.writeHead(405, { 'Content-Type': 'text/plain' });
@@ -57,7 +57,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
       return;
     }
 
-    const eventsMatch = /^\/pages\/([^/]+)\/events$/.exec(url.pathname);
+    const eventsMatch = /^\/pages\/([^/]+)\/events$/.exec(pathname);
     if (eventsMatch) {
       const pageId = eventsMatch[1];
       if (pageId === undefined || pageId === '') {
@@ -69,7 +69,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
       return;
     }
 
-    const match = /^\/pages\/([^/]+)$/.exec(url.pathname);
+    const match = /^\/pages\/([^/]+)$/.exec(pathname);
     if (!match) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('Not Found');
