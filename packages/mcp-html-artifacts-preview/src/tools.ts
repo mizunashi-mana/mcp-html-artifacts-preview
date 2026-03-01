@@ -87,11 +87,14 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
   server.registerTool(
     'get_pages',
     {
-      description: 'List all created pages',
+      description: 'List all created pages. Set includeDeleted to true to also include deleted pages.',
+      inputSchema: {
+        includeDeleted: z.boolean().optional().describe('Include deleted pages in the list'),
+      },
     },
-    () => {
+    ({ includeDeleted }) => {
       const pages = pageStore.list();
-      const result = pages.map(page => ({
+      const result: object[] = pages.map(page => ({
         id: page.id,
         name: page.name,
         title: page.title,
@@ -99,6 +102,19 @@ export function registerTools({ server, pageStore, getBaseUrl }: RegisterToolsOp
         createdAt: page.createdAt.toISOString(),
         updatedAt: page.updatedAt.toISOString(),
       }));
+      if (includeDeleted === true) {
+        const tombstones = pageStore.listTombstones();
+        for (const t of tombstones) {
+          result.push({
+            id: t.id,
+            name: t.name,
+            title: t.title,
+            deleted: true,
+            createdAt: t.createdAt.toISOString(),
+            deletedAt: t.deletedAt.toISOString(),
+          });
+        }
+      }
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result) }],
       };

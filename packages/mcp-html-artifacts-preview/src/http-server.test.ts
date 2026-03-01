@@ -156,6 +156,45 @@ describe('buildDashboardHtml', () => {
     expect(html).toContain('EventSource("/events")');
     expect(html).toContain('addEventListener("create"');
   });
+
+  it('should show deleted pages in a separate section', () => {
+    const store = new PageStore();
+    const page = store.create({ title: 'Deleted Page', html: '<p>bye</p>', name: 'old-artifact' });
+    store.delete(page.id);
+
+    const html = buildDashboardHtml(store);
+
+    expect(html).toContain('Deleted');
+    expect(html).toContain('old-artifact');
+    expect(html).toContain('Deleted Page');
+    expect(html).toContain('class="deleted"');
+  });
+
+  it('should not show deleted section when no tombstones exist', () => {
+    const store = new PageStore();
+    store.create({ title: 'Active', html: '<p>hi</p>' });
+
+    const html = buildDashboardHtml(store);
+
+    expect(html).not.toContain('class="deleted"');
+  });
+
+  it('should show empty message when no pages and no tombstones', () => {
+    const store = new PageStore();
+    const html = buildDashboardHtml(store);
+
+    expect(html).toContain('No artifacts yet');
+  });
+
+  it('should not show empty message when only tombstones exist', () => {
+    const store = new PageStore();
+    const page = store.create({ title: 'Gone', html: '' });
+    store.delete(page.id);
+
+    const html = buildDashboardHtml(store);
+
+    expect(html).not.toContain('No artifacts yet');
+  });
 });
 
 describe('HTTP server integration', () => {

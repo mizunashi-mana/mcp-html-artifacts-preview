@@ -18,7 +18,26 @@ const version
 
 const noOpen = process.argv.includes('--no-open');
 
-const pageStore = new PageStore();
+function parseIntArg(flag: string): number | undefined {
+  const index = process.argv.indexOf(flag);
+  if (index === -1 || index + 1 >= process.argv.length) {
+    return undefined;
+  }
+  const value = Number(process.argv[index + 1]);
+  if (!Number.isFinite(value) || value <= 0 || !Number.isInteger(value)) {
+    console.error(`Invalid value for ${flag}: ${process.argv[index + 1]}`);
+    process.exit(1);
+  }
+  return value;
+}
+
+const maxPages = parseIntArg('--max-pages');
+const ttlSeconds = parseIntArg('--ttl');
+
+const pageStore = new PageStore({
+  maxPages,
+  ttl: ttlSeconds !== undefined ? ttlSeconds * 1000 : undefined,
+});
 
 const httpServer = await startHttpServer({ pageStore });
 console.error(`HTTP server listening at ${httpServer.url}`);
@@ -55,6 +74,7 @@ registerTools({
 });
 
 async function cleanup(): Promise<void> {
+  pageStore.dispose();
   await httpServer.close();
 }
 

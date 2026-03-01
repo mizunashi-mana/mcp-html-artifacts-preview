@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import type { Page, PageStore, PageChangeEvent } from './page-store.js';
+import type { Page, Tombstone, PageStore, PageChangeEvent } from './page-store.js';
 import type { Server, IncomingMessage, ServerResponse } from 'node:http';
 
 export interface HttpServerOptions {
@@ -200,18 +200,31 @@ export function buildHtml(page: Page): string {
 
 const DASHBOARD_SCRIPT = `<script>(function(){var es=new EventSource("/events");es.addEventListener("create",function(e){var d=JSON.parse(e.data);location.href="/pages/"+d.pageId});es.addEventListener("update",function(){location.reload()});es.addEventListener("delete",function(){location.reload()})})()</script>`;
 
+function buildPageRow(page: Page): string {
+  const name = page.name !== undefined ? escapeHtml(page.name) : '<span style="color:#8b949e">—</span>';
+  const title = escapeHtml(page.title);
+  const url = `/pages/${escapeHtmlAttr(page.id)}`;
+  const created = page.createdAt.toISOString().replace('T', ' ').slice(0, 19);
+  const updated = page.updatedAt.toISOString().replace('T', ' ').slice(0, 19);
+  return `<tr><td>${name}</td><td><a href="${url}">${title}</a></td><td>${created}</td><td>${updated}</td></tr>`;
+}
+
+function buildTombstoneRow(tombstone: Tombstone): string {
+  const name = tombstone.name !== undefined ? escapeHtml(tombstone.name) : '<span style="color:#484f58">—</span>';
+  const title = escapeHtml(tombstone.title);
+  const created = tombstone.createdAt.toISOString().replace('T', ' ').slice(0, 19);
+  const deleted = tombstone.deletedAt.toISOString().replace('T', ' ').slice(0, 19);
+  return `<tr class="deleted"><td>${name}</td><td>${title}</td><td>${created}</td><td>${deleted}</td></tr>`;
+}
+
 export function buildDashboardHtml(pageStore: PageStore): string {
   const pages = pageStore.list();
-  const rows = pages.map((page) => {
-    const name = page.name !== undefined ? escapeHtml(page.name) : '<span style="color:#8b949e">—</span>';
-    const title = escapeHtml(page.title);
-    const url = `/pages/${escapeHtmlAttr(page.id)}`;
-    const created = page.createdAt.toISOString().replace('T', ' ').slice(0, 19);
-    const updated = page.updatedAt.toISOString().replace('T', ' ').slice(0, 19);
-    return `<tr><td>${name}</td><td><a href="${url}">${title}</a></td><td>${created}</td><td>${updated}</td></tr>`;
-  }).join('');
+  const tombstones = pageStore.listTombstones();
+  const pageRows = pages.map(buildPageRow).join('');
+  const tombstoneRows = tombstones.map(buildTombstoneRow).join('');
+  const hasAny = pages.length > 0 || tombstones.length > 0;
 
-  const emptyMessage = pages.length === 0
+  const emptyMessage = !hasAny
     ? '<p style="color:#8b949e;text-align:center;margin:40px 0">No artifacts yet. Use <code>create_page</code> to create one.</p>'
     : '';
 
@@ -224,18 +237,21 @@ export function buildDashboardHtml(pageStore: PageStore): string {
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;padding:24px}
 h1{font-size:1.4em;margin-bottom:16px;color:#f0f6fc}
+h2{font-size:1.1em;margin:24px 0 8px;color:#8b949e;font-weight:600}
 table{width:100%;border-collapse:collapse;margin-top:8px}
 th{text-align:left;padding:8px 12px;border-bottom:2px solid #30363d;color:#8b949e;font-size:0.85em;font-weight:600}
 td{padding:8px 12px;border-bottom:1px solid #21262d;font-size:0.9em}
 a{color:#58a6ff;text-decoration:none}
 a:hover{text-decoration:underline}
 code{background:#161b22;padding:2px 6px;border-radius:4px;font-size:0.85em}
+tr.deleted{opacity:0.45}
 </style>
 </head>
 <body>
 <h1>MCP HTML Artifacts</h1>
 ${emptyMessage}
-${pages.length > 0 ? `<table><thead><tr><th>Name</th><th>Title</th><th>Created</th><th>Updated</th></tr></thead><tbody>${rows}</tbody></table>` : ''}
+${pages.length > 0 ? `<table><thead><tr><th>Name</th><th>Title</th><th>Created</th><th>Updated</th></tr></thead><tbody>${pageRows}</tbody></table>` : ''}
+${tombstones.length > 0 ? `<h2>Deleted</h2><table><thead><tr><th>Name</th><th>Title</th><th>Created</th><th>Deleted</th></tr></thead><tbody>${tombstoneRows}</tbody></table>` : ''}
 ${DASHBOARD_SCRIPT}
 </body>
 </html>`;
