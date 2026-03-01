@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "build": "npm run build -w @mcp-html-artifacts-preview/eslint-config && npm run build -w @mizunashi_mana/mcp-html-artifacts-preview",
+    "dev": "npm run dev -w @mizunashi_mana/mcp-html-artifacts-preview",
     "lint": "prek run --all-files",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
