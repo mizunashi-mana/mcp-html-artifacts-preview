@@ -16,6 +16,9 @@ Built on the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), i
 
 - **Instant Preview** — AI-generated HTML renders in your browser immediately
 - **Hot Reload** — Pages update in real-time when content changes
+- **Dashboard** — Browse all artifacts in one place, with auto-navigation to newly created pages
+- **Browser Auto-Open** — Automatically opens the dashboard on first page creation
+- **History Management** — Set page retention limits (`--max-pages`) and expiration (`--ttl`), with deleted page history
 - **Dynamic Port Allocation** — Multiple sessions can run simultaneously without port conflicts
 - **CDN Script Support** — Load Mermaid.js, Chart.js, or any CDN library for rich visualizations
 - **Zero Config** — Just add to your MCP settings and go
@@ -39,13 +42,21 @@ Add to your MCP client configuration:
 
 | Tool | Description |
 |------|-------------|
-| `create_page` | Create an HTML page and get a browser-accessible URL |
-| `update_page` | Update page content (triggers hot reload) |
-| `destroy_page` | Remove a page |
-| `get_pages` | List all created pages |
+| `create_page` | Create an HTML page and get a browser-accessible URL (supports `name` for labeling) |
+| `update_page` | Update page content, title, or name (triggers hot reload) |
+| `destroy_page` | Remove a page (kept in deleted history) |
+| `get_pages` | List all created pages (use `includeDeleted` to show deleted ones too) |
 | `get_page` | Get the HTML content of a specific page |
 | `add_scripts` | Add CDN scripts (e.g., Mermaid.js, Chart.js) |
 | `add_stylesheets` | Add external stylesheets |
+
+## CLI Options
+
+| Option | Description |
+|--------|-------------|
+| `--no-open` | Disable automatic browser opening |
+| `--max-pages <N>` | Maximum number of pages to keep (oldest are auto-removed) |
+| `--ttl <seconds>` | Page time-to-live in seconds (expired pages are auto-cleaned) |
 
 ## Use Cases
 
