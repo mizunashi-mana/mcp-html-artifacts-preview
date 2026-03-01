@@ -41,6 +41,7 @@ mcp-html-artifacts-preview/
 │   ├── actions/                  # 再利用可能アクション
 │   │   ├── setup-devenv/         # devenv セットアップアクション
 │   │   └── setup-node/           # Node.js セットアップアクション
+│   ├── dependabot.yml            # Dependabot 自動アップデート設定
 │   └── workflows/                # CI/CD ワークフロー
 │       ├── ci-lint.yml           # lint チェック
 │       ├── ci-test.yml           # テスト実行

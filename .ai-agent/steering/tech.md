@@ -9,7 +9,7 @@
 - **バリデーション**: zod
 - **ビルド**: tsc（TypeScript Compiler）
 - **テスト**: vitest
-- **リンター/フォーマッター**: eslint, prettier
+- **リンター/フォーマッター**: eslint
 - **CI/CD**: GitHub Actions（CI lint/test、publish ワークフロー）
 
 ## アーキテクチャ概要
@@ -67,7 +67,7 @@ npm run build
 ### 開発コマンド
 
 ```bash
-npm run dev       # 開発モード（watch）
+npm run dev       # ビルド＋MCP サーバー起動
 npm run build     # ビルド
 npm run test      # テスト実行
 npm run lint      # リント
