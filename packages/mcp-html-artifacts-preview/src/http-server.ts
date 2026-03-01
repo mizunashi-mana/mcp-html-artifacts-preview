@@ -49,9 +49,7 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   const { pageStore, hostname = 'localhost' } = options;
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const base = new URL('http://localhost');
-    base.hostname = hostname;
-    const url = new URL(req.url ?? '/', base);
+    const url = new URL(req.url ?? '/', 'http://localhost');
 
     if (req.method !== 'GET') {
       res.writeHead(405, { 'Content-Type': 'text/plain' });
