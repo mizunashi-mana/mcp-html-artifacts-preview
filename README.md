@@ -8,9 +8,9 @@ An MCP server that lets AI assistants instantly preview generated HTML in your b
 
 ## What is this?
 
-When AI coding assistants generate HTML, CSS, or JavaScript, you usually need to manually save files and open them in a browser. This MCP server eliminates that friction — your AI assistant sends HTML directly through MCP tools, and it appears in your browser instantly with hot-reload support.
+An MCP server that receives HTML from your AI assistant and renders it in your browser instantly — with hot reload, a dashboard, and zero config.
 
-Built on the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), it works with any MCP-compatible AI assistant like Claude Code.
+No more saving files and opening them manually. Built on the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), it works with any MCP-compatible AI assistant like Claude Code.
 
 ## Features
 
@@ -64,6 +64,15 @@ Add to your MCP client configuration:
 - Visualize discussions with charts, comparison tables, and diagrams
 - Render Mermaid diagrams, flowcharts, and architecture diagrams
 - Create interactive data visualizations during technical surveys
+
+## Development
+
+```bash
+npm install
+npm run build
+npm run test
+npm run lint
+```
 
 ## License
 
