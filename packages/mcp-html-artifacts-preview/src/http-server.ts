@@ -49,8 +49,9 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   const { pageStore, hostname = 'localhost' } = options;
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    const baseUrl = hostname.includes(':') ? `http://[${hostname}]` : `http://${hostname}`;
-    const url = new URL(req.url ?? '/', baseUrl);
+    const base = new URL('http://localhost');
+    base.hostname = hostname;
+    const url = new URL(req.url ?? '/', base);
 
     if (req.method !== 'GET') {
       res.writeHead(405, { 'Content-Type': 'text/plain' });
@@ -106,8 +107,10 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   if (typeof address !== 'object' || address === null) {
     throw new Error('Unexpected server address type');
   }
-  const host = hostname.includes(':') ? `[${hostname}]` : hostname;
-  const baseUrl = `http://${host}:${String(address.port)}`;
+  const serverUrl = new URL('http://localhost');
+  serverUrl.hostname = hostname;
+  serverUrl.port = String(address.port);
+  const baseUrl = serverUrl.origin;
 
   return {
     server,
