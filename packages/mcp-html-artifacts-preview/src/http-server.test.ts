@@ -244,6 +244,6 @@ describe('HTTP server integration', () => {
   });
 
   it('should assign a dynamic port', () => {
-    expect(httpServer.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
+    expect(httpServer.url).toMatch(/^http:\/\/localhost:\d+$/);
   });
 });
