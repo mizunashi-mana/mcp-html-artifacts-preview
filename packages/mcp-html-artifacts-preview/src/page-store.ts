@@ -93,11 +93,12 @@ export class PageStore {
   }
 
   delete(id: string): boolean {
-    const deleted = this.#pages.delete(id);
-    if (deleted) {
-      this.#emitter.emit('change', { type: 'delete', pageId: id } satisfies PageChangeEvent);
+    if (!this.#pages.has(id)) {
+      return false;
     }
-    return deleted;
+    this.#emitter.emit('change', { type: 'delete', pageId: id } satisfies PageChangeEvent);
+    this.#pages.delete(id);
+    return true;
   }
 
   addScripts(id: string, urls: string[]): Page | undefined {
