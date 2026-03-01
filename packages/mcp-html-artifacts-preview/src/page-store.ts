@@ -93,8 +93,8 @@ export class PageStore {
       createdAt: now,
       updatedAt: now,
     };
-    this.#pages.set(page.id, page);
     this.#evictIfNeeded();
+    this.#pages.set(page.id, page);
     this.#emitter.emit('change', { type: 'create', pageId: page.id } satisfies PageChangeEvent);
     return page;
   }
@@ -190,18 +190,14 @@ export class PageStore {
     if (this.#maxPages === undefined) {
       return;
     }
-    while (this.#pages.size > this.#maxPages) {
-      let oldest: Page | undefined;
-      for (const page of this.#pages.values()) {
-        if (oldest === undefined || page.createdAt < oldest.createdAt) {
-          oldest = page;
-        }
-      }
-      if (oldest) {
-        this.#saveTombstone(oldest);
-        this.#emitter.emit('change', { type: 'delete', pageId: oldest.id } satisfies PageChangeEvent);
-        this.#pages.delete(oldest.id);
-      }
+    // Called before inserting the new page, so evict when at capacity
+    while (this.#pages.size >= this.#maxPages) {
+      // Map preserves insertion order; first entry is the oldest
+      const oldest = this.#pages.values().next().value;
+      if (!oldest) break;
+      this.#saveTombstone(oldest);
+      this.#emitter.emit('change', { type: 'delete', pageId: oldest.id } satisfies PageChangeEvent);
+      this.#pages.delete(oldest.id);
     }
   }
 
@@ -210,15 +206,10 @@ export class PageStore {
       return;
     }
     while (this.#tombstones.size > this.#maxPages) {
-      let oldest: Tombstone | undefined;
-      for (const t of this.#tombstones.values()) {
-        if (oldest === undefined || t.deletedAt < oldest.deletedAt) {
-          oldest = t;
-        }
-      }
-      if (oldest) {
-        this.#tombstones.delete(oldest.id);
-      }
+      // Map preserves insertion order; first entry is the oldest
+      const oldest = this.#tombstones.values().next().value;
+      if (!oldest) break;
+      this.#tombstones.delete(oldest.id);
     }
   }
 
@@ -227,10 +218,14 @@ export class PageStore {
       return;
     }
     const now = Date.now();
+    const expiredIds: string[] = [];
     for (const page of this.#pages.values()) {
       if (now - page.updatedAt.getTime() > this.#ttl) {
-        this.delete(page.id);
+        expiredIds.push(page.id);
       }
+    }
+    for (const id of expiredIds) {
+      this.delete(id);
     }
   }
 }
