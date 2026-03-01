@@ -25,7 +25,6 @@ function handleGlobalSseConnection(pageStore: PageStore, req: IncomingMessage, r
     const page = pageStore.get(event.pageId);
     const data = JSON.stringify({
       pageId: event.pageId,
-      name: page?.name,
       title: page?.title,
     });
     res.write(`event: ${event.type}\ndata: ${data}\n\n`);
@@ -198,14 +197,11 @@ export function buildHtml(page: Page): string {
   return `${injection}\n${page.html}`;
 }
 
-const DASHBOARD_SCRIPT = `<script>(function(){var es=new EventSource("/events");var sel=document.getElementById("page-select");var frame=document.getElementById("page-frame");var empty=document.getElementById("empty-message");var nav=document.querySelector(".page-nav");var link=document.getElementById("open-link");function upd(){var h=sel.options.length>0;frame.style.display=h?"":"none";nav.style.display=h?"":"none";empty.style.display=h?"none":""}function show(id){frame.src="/pages/"+id;sel.value=id;link.href="/pages/"+id}sel.addEventListener("change",function(){show(sel.value)});es.addEventListener("create",function(e){var d=JSON.parse(e.data);var o=document.createElement("option");o.value=d.pageId;o.textContent=d.name?d.name+": "+d.title:d.title;sel.insertBefore(o,sel.firstChild);show(d.pageId);upd()});es.addEventListener("update",function(e){var d=JSON.parse(e.data);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===d.pageId){sel.options[i].textContent=d.name?d.name+": "+d.title:d.title;break}}});es.addEventListener("delete",function(e){var d=JSON.parse(e.data);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===d.pageId){sel.remove(i);break}}if(sel.options.length>0){show(sel.options[0].value)}upd()})})()</script>`;
+const DASHBOARD_SCRIPT = `<script>(function(){var es=new EventSource("/events");var sel=document.getElementById("page-select");var frame=document.getElementById("page-frame");var empty=document.getElementById("empty-message");var nav=document.querySelector(".page-nav");var link=document.getElementById("open-link");function upd(){var h=sel.options.length>0;frame.style.display=h?"":"none";nav.style.display=h?"":"none";empty.style.display=h?"none":""}function show(id){frame.src="/pages/"+id;sel.value=id;link.href="/pages/"+id}sel.addEventListener("change",function(){show(sel.value)});es.addEventListener("create",function(e){var d=JSON.parse(e.data);var o=document.createElement("option");o.value=d.pageId;o.textContent=d.title;sel.insertBefore(o,sel.firstChild);show(d.pageId);upd()});es.addEventListener("update",function(e){var d=JSON.parse(e.data);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===d.pageId){sel.options[i].textContent=d.title;break}}});es.addEventListener("delete",function(e){var d=JSON.parse(e.data);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===d.pageId){sel.remove(i);break}}if(sel.options.length>0){show(sel.options[0].value)}upd()})})()</script>`;
 
 function buildPageOption(page: Page, isSelected: boolean): string {
-  const label = page.name !== undefined
-    ? `${escapeHtml(page.name)}: ${escapeHtml(page.title)}`
-    : escapeHtml(page.title);
   const selected = isSelected ? ' selected' : '';
-  return `<option value="${escapeHtmlAttr(page.id)}"${selected}>${label}</option>`;
+  return `<option value="${escapeHtmlAttr(page.id)}"${selected}>${escapeHtml(page.title)}</option>`;
 }
 
 export function buildDashboardHtml(pageStore: PageStore): string {

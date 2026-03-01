@@ -3,7 +3,6 @@ import { EventEmitter } from 'node:events';
 
 export interface Page {
   id: string;
-  name: string | undefined;
   title: string;
   html: string;
   scripts: string[];
@@ -14,7 +13,6 @@ export interface Page {
 
 export interface Tombstone {
   id: string;
-  name: string | undefined;
   title: string;
   createdAt: Date;
   deletedAt: Date;
@@ -23,13 +21,11 @@ export interface Tombstone {
 export interface CreatePageParams {
   title: string;
   html: string;
-  name?: string;
 }
 
 export interface UpdatePageParams {
   title?: string;
   html?: string;
-  name?: string;
 }
 
 export type PageChangeType = 'create' | 'update' | 'delete';
@@ -85,7 +81,6 @@ export class PageStore {
     const now = new Date();
     const page: Page = {
       id: randomUUID(),
-      name: params.name,
       title: params.title,
       html: params.html,
       scripts: [],
@@ -117,9 +112,6 @@ export class PageStore {
       return undefined;
     }
 
-    if (params.name !== undefined) {
-      page.name = params.name;
-    }
     if (params.title !== undefined) {
       page.title = params.title;
     }
@@ -177,7 +169,6 @@ export class PageStore {
   #saveTombstone(page: Page): void {
     const tombstone: Tombstone = {
       id: page.id,
-      name: page.name,
       title: page.title,
       createdAt: page.createdAt,
       deletedAt: new Date(),
