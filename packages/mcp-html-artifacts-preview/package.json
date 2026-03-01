@@ -1,6 +1,6 @@
 {
   "name": "@mizunashi_mana/mcp-html-artifacts-preview",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "MCP server for previewing AI-generated HTML artifacts in the browser",
   "type": "module",
   "main": "./dist/index.js",
