@@ -46,7 +46,7 @@ function handleSseConnection(pageStore: PageStore, pageId: string, req: Incoming
 }
 
 export async function startHttpServer(options: HttpServerOptions): Promise<HttpServer> {
-  const { pageStore, hostname = '127.0.0.1' } = options;
+  const { pageStore, hostname = 'localhost' } = options;
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     const baseUrl = hostname.includes(':') ? `http://[${hostname}]` : `http://${hostname}`;
