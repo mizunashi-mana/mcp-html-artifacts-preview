@@ -55,14 +55,31 @@ describe('MCP tools integration', () => {
 
       const data = parseText(result as { content: unknown[] }) as {
         id: string;
+        name: string | undefined;
         title: string;
         url: string;
         createdAt: string;
       };
       expect(data.title).toBe('Test Page');
+      expect(data.name).toBeUndefined();
       expect(data.url).toMatch(/^http:\/\/localhost:3000\/pages\//);
       expect(data.id).toBeTruthy();
       expect(data.createdAt).toBeTruthy();
+    });
+
+    it('should create a page with a name', async () => {
+      const result = await client.callTool({
+        name: 'create_page',
+        arguments: { name: 'my-artifact', title: 'Named Page', html: '<p>named</p>' },
+      });
+
+      const data = parseText(result as { content: unknown[] }) as {
+        id: string;
+        name: string;
+        title: string;
+      };
+      expect(data.name).toBe('my-artifact');
+      expect(data.title).toBe('Named Page');
     });
   });
 
@@ -159,7 +176,24 @@ describe('MCP tools integration', () => {
       expect(page.html).toBe('<p>new</p>');
     });
 
-    it('should return error when neither title nor html provided', async () => {
+    it('should update name only', async () => {
+      const createResult = await client.callTool({
+        name: 'create_page',
+        arguments: { title: 'Title', html: '<p>content</p>' },
+      });
+      const created = parseText(createResult as { content: unknown[] }) as { id: string };
+
+      const result = await client.callTool({
+        name: 'update_page',
+        arguments: { id: created.id, name: 'new-name' },
+      });
+
+      const data = parseText(result as { content: unknown[] }) as { name: string; title: string };
+      expect(data.name).toBe('new-name');
+      expect(data.title).toBe('Title');
+    });
+
+    it('should return error when neither name, title, nor html provided', async () => {
       const createResult = await client.callTool({
         name: 'create_page',
         arguments: { title: 'Test', html: '' },
@@ -172,7 +206,7 @@ describe('MCP tools integration', () => {
       });
 
       expect(result.isError).toBe(true);
-      expect(getText(result as { content: unknown[] })).toContain('At least one of title or html must be provided');
+      expect(getText(result as { content: unknown[] })).toContain('At least one of name, title, or html must be provided');
     });
 
     it('should return error for non-existent page', async () => {

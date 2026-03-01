@@ -13,6 +13,31 @@ export interface HttpServer {
   close: () => Promise<void>;
 }
 
+function handleGlobalSseConnection(pageStore: PageStore, req: IncomingMessage, res: ServerResponse): void {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+  res.write('\n');
+
+  const listener = (event: PageChangeEvent): void => {
+    const page = pageStore.get(event.pageId);
+    const data = JSON.stringify({
+      pageId: event.pageId,
+      name: page?.name,
+      title: page?.title,
+    });
+    res.write(`event: ${event.type}\ndata: ${data}\n\n`);
+  };
+
+  pageStore.onChange(listener);
+
+  req.on('close', () => {
+    pageStore.offChange(listener);
+  });
+}
+
 function handleSseConnection(pageStore: PageStore, pageId: string, req: IncomingMessage, res: ServerResponse): void {
   if (!pageStore.get(pageId)) {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -59,6 +84,17 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
     if (req.method !== 'GET') {
       res.writeHead(405, { 'Content-Type': 'text/plain' });
       res.end('Method Not Allowed');
+      return;
+    }
+
+    if (pathname === '/') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(buildDashboardHtml(pageStore));
+      return;
+    }
+
+    if (pathname === '/events') {
+      handleGlobalSseConnection(pageStore, req, res);
       return;
     }
 
@@ -133,6 +169,10 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
   };
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function escapeHtmlAttr(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
@@ -156,4 +196,47 @@ export function buildHtml(page: Page): string {
   }
 
   return `${injection}\n${page.html}`;
+}
+
+const DASHBOARD_SCRIPT = `<script>(function(){var es=new EventSource("/events");es.addEventListener("create",function(e){var d=JSON.parse(e.data);location.href="/pages/"+d.pageId});es.addEventListener("update",function(){location.reload()});es.addEventListener("delete",function(){location.reload()})})()</script>`;
+
+export function buildDashboardHtml(pageStore: PageStore): string {
+  const pages = pageStore.list();
+  const rows = pages.map((page) => {
+    const name = page.name !== undefined ? escapeHtml(page.name) : '<span style="color:#8b949e">—</span>';
+    const title = escapeHtml(page.title);
+    const url = `/pages/${escapeHtmlAttr(page.id)}`;
+    const created = page.createdAt.toISOString().replace('T', ' ').slice(0, 19);
+    const updated = page.updatedAt.toISOString().replace('T', ' ').slice(0, 19);
+    return `<tr><td>${name}</td><td><a href="${url}">${title}</a></td><td>${created}</td><td>${updated}</td></tr>`;
+  }).join('');
+
+  const emptyMessage = pages.length === 0
+    ? '<p style="color:#8b949e;text-align:center;margin:40px 0">No artifacts yet. Use <code>create_page</code> to create one.</p>'
+    : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MCP HTML Artifacts</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;padding:24px}
+h1{font-size:1.4em;margin-bottom:16px;color:#f0f6fc}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th{text-align:left;padding:8px 12px;border-bottom:2px solid #30363d;color:#8b949e;font-size:0.85em;font-weight:600}
+td{padding:8px 12px;border-bottom:1px solid #21262d;font-size:0.9em}
+a{color:#58a6ff;text-decoration:none}
+a:hover{text-decoration:underline}
+code{background:#161b22;padding:2px 6px;border-radius:4px;font-size:0.85em}
+</style>
+</head>
+<body>
+<h1>MCP HTML Artifacts</h1>
+${emptyMessage}
+${pages.length > 0 ? `<table><thead><tr><th>Name</th><th>Title</th><th>Created</th><th>Updated</th></tr></thead><tbody>${rows}</tbody></table>` : ''}
+${DASHBOARD_SCRIPT}
+</body>
+</html>`;
 }

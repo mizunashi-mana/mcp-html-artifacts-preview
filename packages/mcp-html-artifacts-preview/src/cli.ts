@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { exec } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -15,10 +16,32 @@ const version
     ? pkg.version
     : '0.0.0';
 
+const noOpen = process.argv.includes('--no-open');
+
 const pageStore = new PageStore();
 
 const httpServer = await startHttpServer({ pageStore });
 console.error(`HTTP server listening at ${httpServer.url}`);
+
+if (!noOpen) {
+  let opened = false;
+  pageStore.onChange((event) => {
+    if (event.type === 'create' && !opened) {
+      opened = true;
+      const url = httpServer.url;
+      const command = process.platform === 'win32'
+        ? `start "" "${url}"`
+        : process.platform === 'darwin'
+          ? `open "${url}"`
+          : `xdg-open "${url}"`;
+      exec(command, (err) => {
+        if (err) {
+          console.error(`Failed to open browser: ${err.message}`);
+        }
+      });
+    }
+  });
+}
 
 const server = new McpServer({
   name: 'mcp-html-artifacts-preview',
