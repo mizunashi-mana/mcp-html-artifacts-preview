@@ -93,5 +93,5 @@ npm run typecheck # 型チェック
 ## パッケージ配布
 
 - `@mizunashi_mana/mcp-html-artifacts-preview` として npm に公開済み
-- `npx mcp-html-artifacts-preview` で即座に起動可能
+- `npx @mizunashi_mana/mcp-html-artifacts-preview` で即座に起動可能
 - GitHub Actions の `publish.yml` ワークフローで npm provenance 付き公開・タグ・リリース作成を自動化
