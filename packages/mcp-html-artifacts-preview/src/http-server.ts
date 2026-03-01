@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import type { Page, Tombstone, PageStore, PageChangeEvent } from './page-store.js';
+import type { Page, PageStore, PageChangeEvent } from './page-store.js';
 import type { Server, IncomingMessage, ServerResponse } from 'node:http';
 
 export interface HttpServerOptions {
@@ -198,35 +198,25 @@ export function buildHtml(page: Page): string {
   return `${injection}\n${page.html}`;
 }
 
-const DASHBOARD_SCRIPT = `<script>(function(){var es=new EventSource("/events");es.addEventListener("create",function(e){var d=JSON.parse(e.data);location.href="/pages/"+d.pageId});es.addEventListener("update",function(){location.reload()});es.addEventListener("delete",function(){location.reload()})})()</script>`;
+const DASHBOARD_SCRIPT = `<script>(function(){var es=new EventSource("/events");var sel=document.getElementById("page-select");var frame=document.getElementById("page-frame");var empty=document.getElementById("empty-message");var nav=document.querySelector(".page-nav");var link=document.getElementById("open-link");function upd(){var h=sel.options.length>0;frame.style.display=h?"":"none";nav.style.display=h?"":"none";empty.style.display=h?"none":""}function show(id){frame.src="/pages/"+id;sel.value=id;link.href="/pages/"+id}sel.addEventListener("change",function(){show(sel.value)});es.addEventListener("create",function(e){var d=JSON.parse(e.data);var o=document.createElement("option");o.value=d.pageId;o.textContent=d.name?d.name+": "+d.title:d.title;sel.insertBefore(o,sel.firstChild);show(d.pageId);upd()});es.addEventListener("update",function(e){var d=JSON.parse(e.data);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===d.pageId){sel.options[i].textContent=d.name?d.name+": "+d.title:d.title;break}}});es.addEventListener("delete",function(e){var d=JSON.parse(e.data);for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===d.pageId){sel.remove(i);break}}if(sel.options.length>0){show(sel.options[0].value)}upd()})})()</script>`;
 
-function buildPageRow(page: Page): string {
-  const name = page.name !== undefined ? escapeHtml(page.name) : '<span style="color:#8b949e">—</span>';
-  const title = escapeHtml(page.title);
-  const url = `/pages/${escapeHtmlAttr(page.id)}`;
-  const created = page.createdAt.toISOString().replace('T', ' ').slice(0, 19);
-  const updated = page.updatedAt.toISOString().replace('T', ' ').slice(0, 19);
-  return `<tr><td>${name}</td><td><a href="${url}">${title}</a></td><td>${created}</td><td>${updated}</td></tr>`;
-}
-
-function buildTombstoneRow(tombstone: Tombstone): string {
-  const name = tombstone.name !== undefined ? escapeHtml(tombstone.name) : '<span style="color:#484f58">—</span>';
-  const title = escapeHtml(tombstone.title);
-  const created = tombstone.createdAt.toISOString().replace('T', ' ').slice(0, 19);
-  const deleted = tombstone.deletedAt.toISOString().replace('T', ' ').slice(0, 19);
-  return `<tr class="deleted"><td>${name}</td><td>${title}</td><td>${created}</td><td>${deleted}</td></tr>`;
+function buildPageOption(page: Page, isSelected: boolean): string {
+  const label = page.name !== undefined
+    ? `${escapeHtml(page.name)}: ${escapeHtml(page.title)}`
+    : escapeHtml(page.title);
+  const selected = isSelected ? ' selected' : '';
+  return `<option value="${escapeHtmlAttr(page.id)}"${selected}>${label}</option>`;
 }
 
 export function buildDashboardHtml(pageStore: PageStore): string {
   const pages = pageStore.list();
-  const tombstones = pageStore.listTombstones();
-  const pageRows = pages.map(buildPageRow).join('');
-  const tombstoneRows = tombstones.map(buildTombstoneRow).join('');
-  const hasAny = pages.length > 0 || tombstones.length > 0;
+  const sorted = [...pages].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  const latest = sorted[0];
+  const hasPages = sorted.length > 0;
 
-  const emptyMessage = !hasAny
-    ? '<p style="color:#8b949e;text-align:center;margin:40px 0">No artifacts yet. Use <code>create_page</code> to create one.</p>'
-    : '';
+  const options = sorted.map((p, i) => buildPageOption(p, i === 0)).join('');
+  const iframeSrc = latest ? `/pages/${escapeHtmlAttr(latest.id)}` : '';
+  const openHref = latest ? `/pages/${escapeHtmlAttr(latest.id)}` : '#';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -234,24 +224,34 @@ export function buildDashboardHtml(pageStore: PageStore): string {
 <meta charset="utf-8">
 <title>MCP HTML Artifacts</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;padding:24px}
-h1{font-size:1.4em;margin-bottom:16px;color:#f0f6fc}
-h2{font-size:1.1em;margin:24px 0 8px;color:#8b949e;font-weight:600}
-table{width:100%;border-collapse:collapse;margin-top:8px}
-th{text-align:left;padding:8px 12px;border-bottom:2px solid #30363d;color:#8b949e;font-size:0.85em;font-weight:600}
-td{padding:8px 12px;border-bottom:1px solid #21262d;font-size:0.9em}
-a{color:#58a6ff;text-decoration:none}
-a:hover{text-decoration:underline}
-code{background:#161b22;padding:2px 6px;border-radius:4px;font-size:0.85em}
-tr.deleted{opacity:0.45}
+html,body{margin:0;padding:0;height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9}
+header{display:flex;align-items:center;gap:12px;padding:8px 16px;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0}
+header h1{font-size:1em;color:#f0f6fc;white-space:nowrap}
+.page-nav{display:flex;align-items:center;gap:8px}
+select{background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:4px 8px;font-size:0.85em;max-width:300px}
+.open-link{color:#58a6ff;font-size:0.8em;text-decoration:none;white-space:nowrap}
+.open-link:hover{text-decoration:underline}
+main{flex:1;position:relative}
+iframe{width:100%;height:100%;border:none}
+.empty{display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;text-align:center}
+.empty code{background:#161b22;padding:2px 6px;border-radius:4px;font-size:0.85em}
 </style>
 </head>
 <body>
+<header>
 <h1>MCP HTML Artifacts</h1>
-${emptyMessage}
-${pages.length > 0 ? `<table><thead><tr><th>Name</th><th>Title</th><th>Created</th><th>Updated</th></tr></thead><tbody>${pageRows}</tbody></table>` : ''}
-${tombstones.length > 0 ? `<h2>Deleted</h2><table><thead><tr><th>Name</th><th>Title</th><th>Created</th><th>Deleted</th></tr></thead><tbody>${tombstoneRows}</tbody></table>` : ''}
+<div class="page-nav"${hasPages ? '' : ' style="display:none"'}>
+<select id="page-select">${options}</select>
+<a class="open-link" id="open-link" href="${openHref}" target="_blank">Open</a>
+</div>
+</header>
+<main>
+<iframe id="page-frame" src="${iframeSrc}"${hasPages ? '' : ' style="display:none"'}></iframe>
+<div class="empty" id="empty-message"${hasPages ? ' style="display:none"' : ''}>
+<p>No artifacts yet. Use <code>create_page</code> to create one.</p>
+</div>
+</main>
 ${DASHBOARD_SCRIPT}
 </body>
 </html>`;

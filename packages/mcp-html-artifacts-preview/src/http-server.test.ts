@@ -113,28 +113,47 @@ describe('buildDashboardHtml', () => {
     const html = buildDashboardHtml(store);
 
     expect(html).toContain('No artifacts yet');
-    expect(html).not.toContain('<table>');
+    expect(html).toMatch(/page-frame"[^>]*style="display:none"/);
   });
 
-  it('should list pages with name, title, and links', () => {
+  it('should show latest artifact in iframe and pages in selector', () => {
     const store = new PageStore();
     const page = store.create({ title: 'My Page', html: '<p>test</p>', name: 'my-page' });
 
     const html = buildDashboardHtml(store);
 
-    expect(html).toContain('my-page');
-    expect(html).toContain('My Page');
+    expect(html).toContain('my-page: My Page');
+    expect(html).toContain(`<iframe`);
     expect(html).toContain(`/pages/${page.id}`);
-    expect(html).not.toContain('No artifacts yet');
+    expect(html).toContain('<select');
+    expect(html).toMatch(/empty-message"[^>]*style="display:none"/);
   });
 
-  it('should show dash for pages without a name', () => {
+  it('should show only title for pages without a name', () => {
     const store = new PageStore();
     store.create({ title: 'Unnamed', html: '<p>test</p>' });
 
     const html = buildDashboardHtml(store);
 
-    expect(html).toContain('—');
+    expect(html).toContain('>Unnamed</option>');
+  });
+
+  it('should select the most recently updated page', () => {
+    const store = new PageStore();
+    const older = store.create({ title: 'Older', html: '<p>old</p>', name: 'old' });
+    const newer = store.create({ title: 'Newer', html: '<p>new</p>', name: 'new' });
+
+    // Update the older page to make it the most recent
+    store.update(older.id, { html: '<p>updated</p>' });
+
+    const html = buildDashboardHtml(store);
+
+    // The iframe should show the most recently updated page (older, now updated)
+    expect(html).toContain(`src="/pages/${older.id}"`);
+    // The first option (selected) should be the most recently updated
+    expect(html).toMatch(new RegExp(`<option value="${older.id}" selected>`));
+    expect(html).toMatch(new RegExp(`<option value="${newer.id}">`));
+    expect(html).not.toMatch(new RegExp(`<option value="${newer.id}" selected>`));
   });
 
   it('should escape HTML in name and title', () => {
@@ -155,45 +174,47 @@ describe('buildDashboardHtml', () => {
 
     expect(html).toContain('EventSource("/events")');
     expect(html).toContain('addEventListener("create"');
+    expect(html).toContain('addEventListener("update"');
+    expect(html).toContain('addEventListener("delete"');
   });
 
-  it('should show deleted pages in a separate section', () => {
+  it('should hide nav and iframe when no pages exist', () => {
     const store = new PageStore();
-    const page = store.create({ title: 'Deleted Page', html: '<p>bye</p>', name: 'old-artifact' });
-    store.delete(page.id);
-
     const html = buildDashboardHtml(store);
 
-    expect(html).toContain('Deleted');
-    expect(html).toContain('old-artifact');
-    expect(html).toContain('Deleted Page');
-    expect(html).toContain('class="deleted"');
+    expect(html).toMatch(/page-nav"[^>]*style="display:none"/);
+    expect(html).toMatch(/page-frame"[^>]*style="display:none"/);
   });
 
-  it('should not show deleted section when no tombstones exist', () => {
+  it('should show nav and iframe when pages exist', () => {
     const store = new PageStore();
     store.create({ title: 'Active', html: '<p>hi</p>' });
 
     const html = buildDashboardHtml(store);
 
-    expect(html).not.toContain('class="deleted"');
+    expect(html).not.toMatch(/page-nav"[^>]*style="display:none"/);
+    expect(html).not.toMatch(/page-frame"[^>]*style="display:none"/);
   });
 
-  it('should show empty message when no pages and no tombstones', () => {
-    const store = new PageStore();
-    const html = buildDashboardHtml(store);
-
-    expect(html).toContain('No artifacts yet');
-  });
-
-  it('should not show empty message when only tombstones exist', () => {
+  it('should show empty message when only tombstones exist', () => {
     const store = new PageStore();
     const page = store.create({ title: 'Gone', html: '' });
     store.delete(page.id);
 
     const html = buildDashboardHtml(store);
 
-    expect(html).not.toContain('No artifacts yet');
+    expect(html).toContain('No artifacts yet');
+  });
+
+  it('should include open link for direct page access', () => {
+    const store = new PageStore();
+    const page = store.create({ title: 'Test', html: '<p>test</p>' });
+
+    const html = buildDashboardHtml(store);
+
+    expect(html).toContain(`href="/pages/${page.id}"`);
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('Open');
   });
 });
 
