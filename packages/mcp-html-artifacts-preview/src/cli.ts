@@ -50,6 +50,18 @@ process.on('SIGTERM', () => {
 try {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+
+  // server.connect() resolves immediately after starting the transport.
+  // Wait for the MCP connection to actually close before cleaning up.
+  await new Promise<void>((resolve) => {
+    server.server.onclose = () => resolve();
+
+    // StdioServerTransport does not detect stdin closing on its own,
+    // so trigger server close when the MCP client disconnects.
+    process.stdin.on('close', () => {
+      void server.close();
+    });
+  });
 }
 catch (error) {
   console.error('Failed to start MCP server:', error);
