@@ -2,13 +2,13 @@
 
 ## 現在のフェーズ
 
-v0.4.0 公開済み — 基本機能の実装・テスト・npm 公開・CLI 修正・Dependabot セットアップが完了
+Phase 4a: UX 改善（自動オープン・自動切り替え）に着手予定
 
 ## 完了済み機能
 
 - Phase 1: プロジェクト基盤（autodev 環境、npm ワークスペース、ESLint、MCP サーバー骨格）
 - Phase 2: コア機能実装（全 MCP ツール、HTTP サーバー、ホットリロード）
-- Phase 3: 品質・配布（ユニットテスト・統合テスト、npm 公開、CLI shebang 修正）
+- Phase 3: 品質・配布（ユニットテスト・統合テスト、npm 公開、CLI shebang 修正、Dependabot 設定）
 
 ## 進行中の作業
 
@@ -16,24 +16,15 @@ v0.4.0 公開済み — 基本機能の実装・テスト・npm 公開・CLI 修
 
 ## 今後の計画
 
-### Phase 1: プロジェクト基盤（完了）
+### Phase 4a: UX 改善 — 自動オープン・自動切り替え
 
-- [x] autodev 環境初期化
-- [x] npm パッケージ初期化（package.json、tsconfig.json、eslint、prettier）
-- [x] MCP サーバーの基本骨格実装
+- [ ] `create_page` に `name` パラメータを追加（アーティファクトに名前を付与）
+- [ ] ダッシュボードページの実装（アーティファクト一覧表示、名前付き、各ページへの遷移）
+- [ ] ブラウザ自動オープン（初回 `create_page` 時に自動でブラウザを起動）
+- [ ] 新規アーティファクト作成時の自動切り替え（WebSocket 経由でダッシュボードから自動遷移）
 
-### Phase 2: コア機能実装（完了）
+### Phase 4b: 履歴管理
 
-- [x] `create_page` / `update_page` / `destroy_page` ツール実装
-- [x] `get_pages` / `get_page` ツール実装
-- [x] `add_scripts` / `add_stylesheets` ツール実装
-- [x] 組み込み HTTP サーバー（動的ポート割り当て）
-- [x] ホットリロード機能（WebSocket/SSE）
-
-### Phase 3: 品質・配布（完了）
-
-- [x] ユニットテスト・統合テスト
-- [x] npm パッケージとして公開（v0.4.0）
-- [x] CLI エントリポイントに shebang 追加
-- [x] Dependabot 自動アップデート設定
-- [ ] dotfiles リポジトリでの mcp-html-sync-server からの移行
+- [ ] アーティファクト履歴の保持上限設定（件数）
+- [ ] ページ有効期限の設定（期限切れの自動クリーンアップ）
+- [ ] 削除済みアーティファクトの履歴保持
