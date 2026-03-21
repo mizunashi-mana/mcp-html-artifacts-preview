@@ -60,7 +60,7 @@ describe('MCP tools integration', () => {
         createdAt: string;
       };
       expect(data.title).toBe('Test Page');
-      expect(data.url).toMatch(/^http:\/\/localhost:3000\/pages\//);
+      expect(data.url).toMatch(/^http:\/\/localhost:3000\/pages\//v);
       expect(data.id).toBeTruthy();
       expect(data.createdAt).toBeTruthy();
     });

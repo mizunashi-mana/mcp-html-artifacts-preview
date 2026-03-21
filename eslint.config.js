@@ -1,4 +1,4 @@
-import { buildConfig } from "@mcp-html-artifacts-preview/eslint-config";
+import { buildConfig } from "@mizunashi_mana/eslint-config-refined";
 
 export default [
   ...buildConfig({

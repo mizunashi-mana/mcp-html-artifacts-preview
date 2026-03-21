@@ -75,7 +75,7 @@ describe('buildHtml', () => {
     const result = buildHtml(page);
     expect(result).toContain('<script src="https://cdn.example.com/lib.js"></script>');
     expect(result).toContain('EventSource');
-    expect(result).toMatch(/<p>Hello<\/p>$/);
+    expect(result).toMatch(/<p>Hello<\/p>$/v);
   });
 
   it('should escape special characters in URLs to prevent XSS', () => {
@@ -112,7 +112,7 @@ describe('buildDashboardHtml', () => {
     const html = buildDashboardHtml(store);
 
     expect(html).toContain('No artifacts yet');
-    expect(html).toMatch(/page-frame"[^>]*style="display:none"/);
+    expect(html).toMatch(/page-frame"[^>]*style="display:none"/v);
   });
 
   it('should show latest artifact in iframe and pages in selector', () => {
@@ -125,7 +125,7 @@ describe('buildDashboardHtml', () => {
     expect(html).toContain(`<iframe`);
     expect(html).toContain(`/pages/${page.id}`);
     expect(html).toContain('<select');
-    expect(html).toMatch(/empty-message"[^>]*style="display:none"/);
+    expect(html).toMatch(/empty-message"[^>]*style="display:none"/v);
   });
 
   it('should select the most recently updated page', () => {
@@ -141,9 +141,9 @@ describe('buildDashboardHtml', () => {
     // The iframe should show the most recently updated page (older, now updated)
     expect(html).toContain(`src="/pages/${older.id}"`);
     // The first option (selected) should be the most recently updated
-    expect(html).toMatch(new RegExp(`<option value="${older.id}" selected>`));
-    expect(html).toMatch(new RegExp(`<option value="${newer.id}">`));
-    expect(html).not.toMatch(new RegExp(`<option value="${newer.id}" selected>`));
+    expect(html).toMatch(new RegExp(`<option value="${older.id}" selected>`, 'v'));
+    expect(html).toMatch(new RegExp(`<option value="${newer.id}">`, 'v'));
+    expect(html).not.toMatch(new RegExp(`<option value="${newer.id}" selected>`, 'v'));
   });
 
   it('should escape HTML in title', () => {
@@ -170,8 +170,8 @@ describe('buildDashboardHtml', () => {
     const store = new PageStore();
     const html = buildDashboardHtml(store);
 
-    expect(html).toMatch(/page-nav"[^>]*style="display:none"/);
-    expect(html).toMatch(/page-frame"[^>]*style="display:none"/);
+    expect(html).toMatch(/page-nav"[^>]*style="display:none"/v);
+    expect(html).toMatch(/page-frame"[^>]*style="display:none"/v);
   });
 
   it('should show nav and iframe when pages exist', () => {
@@ -180,8 +180,8 @@ describe('buildDashboardHtml', () => {
 
     const html = buildDashboardHtml(store);
 
-    expect(html).not.toMatch(/page-nav"[^>]*style="display:none"/);
-    expect(html).not.toMatch(/page-frame"[^>]*style="display:none"/);
+    expect(html).not.toMatch(/page-nav"[^>]*style="display:none"/v);
+    expect(html).not.toMatch(/page-frame"[^>]*style="display:none"/v);
   });
 
   it('should show empty message when only tombstones exist', () => {
@@ -344,7 +344,7 @@ describe('HTTP server integration', () => {
   });
 
   it('should assign a dynamic port', () => {
-    expect(httpServer.url).toMatch(/^http:\/\/localhost:\d+$/);
+    expect(httpServer.url).toMatch(/^http:\/\/localhost:\d+$/v);
   });
 
   describe('dashboard', () => {
