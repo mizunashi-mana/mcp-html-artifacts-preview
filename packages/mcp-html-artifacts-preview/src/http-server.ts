@@ -97,9 +97,9 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
       return;
     }
 
-    const eventsMatch = /^\/pages\/([^/]+)\/events$/.exec(pathname);
+    const eventsMatch = /^\/pages\/(?<pageId>[^\/]+)\/events$/v.exec(pathname);
     if (eventsMatch) {
-      const pageId = eventsMatch[1];
+      const pageId = eventsMatch.groups?.pageId;
       if (pageId === undefined || pageId === '') {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
@@ -109,14 +109,14 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
       return;
     }
 
-    const match = /^\/pages\/([^/]+)$/.exec(pathname);
+    const match = /^\/pages\/(?<pageId>[^\/]+)$/v.exec(pathname);
     if (!match) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('Not Found');
       return;
     }
 
-    const pageId = match[1];
+    const pageId = match.groups?.pageId;
     if (pageId === undefined || pageId === '') {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('Not Found');
@@ -169,11 +169,11 @@ export async function startHttpServer(options: HttpServerOptions): Promise<HttpS
 }
 
 function escapeHtml(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return value.replace(/&/gv, '&amp;').replace(/</gv, '&lt;').replace(/>/gv, '&gt;').replace(/"/gv, '&quot;');
 }
 
 function escapeHtmlAttr(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  return value.replace(/&/gv, '&amp;').replace(/"/gv, '&quot;');
 }
 
 const HOT_RELOAD_SCRIPT = `<script>(function(){var es=new EventSource(location.pathname+"/events");es.addEventListener("update",function(){location.reload()});es.addEventListener("delete",function(){es.close();document.title="[Deleted] "+document.title})})()</script>`;

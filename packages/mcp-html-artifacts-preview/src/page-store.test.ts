@@ -260,7 +260,9 @@ describe('PageStore', () => {
       store.create({ title: 'Page 1', html: '<p>1</p>' });
 
       const events: Array<{ type: string; pageId: string }> = [];
-      store.onChange(e => events.push(e));
+      store.onChange((e) => {
+        events.push(e);
+      });
       store.create({ title: 'Page 2', html: '<p>2</p>' });
 
       const deleteEvents = events.filter(e => e.type === 'delete');
@@ -419,7 +421,9 @@ describe('PageStore', () => {
       const store = new PageStore();
       const page = store.create({ title: 'Test', html: '<p>test</p>' });
       const events: Array<{ type: string; pageId: string }> = [];
-      store.onChange(e => events.push(e));
+      store.onChange((e) => {
+        events.push(e);
+      });
 
       store.update(page.id, { title: 'Updated' });
 
@@ -430,7 +434,9 @@ describe('PageStore', () => {
       const store = new PageStore();
       const page = store.create({ title: 'Test', html: '<p>test</p>' });
       const events: Array<{ type: string; pageId: string }> = [];
-      store.onChange(e => events.push(e));
+      store.onChange((e) => {
+        events.push(e);
+      });
 
       store.delete(page.id);
 
@@ -440,7 +446,9 @@ describe('PageStore', () => {
     it('should not emit delete event for non-existent page', () => {
       const store = new PageStore();
       const events: Array<{ type: string; pageId: string }> = [];
-      store.onChange(e => events.push(e));
+      store.onChange((e) => {
+        events.push(e);
+      });
 
       store.delete('non-existent');
 
@@ -451,7 +459,9 @@ describe('PageStore', () => {
       const store = new PageStore();
       const page = store.create({ title: 'Test', html: '' });
       const events: Array<{ type: string; pageId: string }> = [];
-      store.onChange(e => events.push(e));
+      store.onChange((e) => {
+        events.push(e);
+      });
 
       store.addScripts(page.id, ['https://cdn.example.com/lib.js']);
 
@@ -462,7 +472,9 @@ describe('PageStore', () => {
       const store = new PageStore();
       const page = store.create({ title: 'Test', html: '' });
       const events: Array<{ type: string; pageId: string }> = [];
-      store.onChange(e => events.push(e));
+      store.onChange((e) => {
+        events.push(e);
+      });
 
       store.addStylesheets(page.id, ['https://cdn.example.com/style.css']);
 
