@@ -8,7 +8,6 @@ export default [
     entrypointFiles: [
       'src/index.ts',
       'src/cli.ts',
-      'scripts/cc-edit-lint-hook.mjs',
     ],
   }),
   {

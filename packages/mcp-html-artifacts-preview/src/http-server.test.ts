@@ -141,9 +141,9 @@ describe('buildDashboardHtml', () => {
     // The iframe should show the most recently updated page (older, now updated)
     expect(html).toContain(`src="/pages/${older.id}"`);
     // The first option (selected) should be the most recently updated
-    expect(html).toMatch(new RegExp(`<option value="${older.id}" selected>`, 'v'));
-    expect(html).toMatch(new RegExp(`<option value="${newer.id}">`, 'v'));
-    expect(html).not.toMatch(new RegExp(`<option value="${newer.id}" selected>`, 'v'));
+    expect(html).toContain(`<option value="${older.id}" selected>`);
+    expect(html).toContain(`<option value="${newer.id}">`);
+    expect(html).not.toContain(`<option value="${newer.id}" selected>`);
   });
 
   it('should escape HTML in title', () => {
