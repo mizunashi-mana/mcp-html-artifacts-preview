@@ -22,6 +22,11 @@
     entry = "actionlint";
     files = "^.github/workflows/.*\.ya?ml$";
   };
+  git-hooks.hooks.npx-eslint-pkg-root = {
+    enable = true;
+    entry = "npx eslint --cache --fix";
+    files = "^(?!packages/).*\.[cm]?(js|ts)x?$";
+  };
   git-hooks.hooks.npx-eslint-pkg-mcp-html-artifacts-preview = {
     enable = true;
     entry = "./scripts/run-script.mjs --cwd packages/mcp-html-artifacts-preview -- npx eslint --cache --fix FILES";

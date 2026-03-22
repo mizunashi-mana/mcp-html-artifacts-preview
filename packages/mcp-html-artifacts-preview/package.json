@@ -20,7 +20,7 @@
     "dev:watch": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run",
     "test:update": "vitest run --update",
-    "lint:eslint": "eslint --cache --fix src",
+    "lint:eslint": "eslint --cache --fix .",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
@@ -52,6 +52,7 @@
     "@mizunashi_mana/eslint-config-refined": "^0.2.0",
     "@types/node": "^25.5.0",
     "eslint": "^10.0.0",
+    "jiti": "^2.6.1",
     "typescript": "^5.5.0",
     "vitest": "^4.0.0"
   }
