@@ -49,7 +49,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@mizunashi_mana/eslint-config-refined": "^0.2.0",
+    "@mizunashi_mana/eslint-config-refined": "^1.0.0",
     "@types/node": "^25.5.0",
     "eslint": "^10.0.0",
     "jiti": "^2.6.1",
